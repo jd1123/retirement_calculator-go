@@ -126,22 +126,16 @@ type RetCalc struct {
 }
 
 func NewRetCalc_from_json(json_obj []byte) RetCalc {
-	r := RetCalc{}
-	r.N = 10000
-	r.Age = 22
-	r.Retirement_age = 65
-	r.Terminal_age = 88
-	r.Years = r.Terminal_age - r.Age
-	r.Effective_tax_rate = 0.35
-	r.Returns_tax_rate = 0.35
-	r.Non_Taxable_contribution = 17500
-	r.Taxable_contribution = 0
-	r.Non_Taxable_balance = 0
+	var r RetCalc
+	err := json.Unmarshal(json_obj, &r)
+	if err != nil {
+		fmt.Println("Error")
+	}
 
-	r.Taxable_balance = 0
-	r.Asset_volatility = 0.15
-	r.Expected_rate_of_return = 0.07
-	r.Inflation_rate = 0.035
+	r.sims = make([][]float64, r.N, r.N)
+	for i := range r.sims {
+		r.sims[i] = simulation.Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+	}
 
 	return r
 }
