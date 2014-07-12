@@ -23,7 +23,6 @@ package retcalc
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"retirement_calculator-go/path"
 	"retirement_calculator-go/simulation"
 	"sort"
@@ -136,7 +135,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 
-	r.N = 5000
+	r.N = 2500
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
@@ -152,11 +151,13 @@ func NewRetCalc() RetCalc {
 	r.Asset_volatility = 0.15
 	r.Expected_rate_of_return = 0.07
 	r.Inflation_rate = 0.035
-	r.All_paths = make(path.PathGroup, r.N, r.N)
 	r.sims = make([][]float64, r.N, r.N)
+	r.All_paths = make([]path.Path, r.N, r.N)
 	for i := range r.sims {
 		r.sims[i] = simulation.Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.All_paths[i] = run_path(r, r.sims[i])
 	}
+	sort.Sort(r.All_paths)
 
 	return r
 }
@@ -191,34 +192,19 @@ func histogram(all_paths path.PathGroup) {
 	fmt.Println(h)
 }
 
-func (r RetCalc) Factors(sim []float64) (float64, []float64) {
-	factors := make([]float64, len(sim), len(sim))
-	s_factors := 0.0
-
-	for i := range sim {
-		sum := 1.0
-		for j := i + 1; j < len(sim); j++ {
-			sum *= (1 + sim[j])
-		}
-		factors[i] = sum * math.Pow(1+r.Inflation_rate, float64(i))
-		s_factors += factors[i]
-	}
-
-	return s_factors, factors
-}
-
 // main, mainly for testing
 func main() {
 	r := NewRetCalc()
-	var all_paths path.PathGroup
-	all_paths = make([]path.Path, r.N, r.N)
+	/*
+		var all_paths path.PathGroup
+		all_paths = make([]path.Path, r.N, r.N)
 
-	for i := 0; i < r.N; i++ {
-		all_paths[i] = run_path(r, r.sims[i])
-	}
+		for i := 0; i < r.N; i++ {
+			all_paths[i] = run_path(r, r.sims[i])
+		}*/
 
-	sort.Sort(all_paths)
-	histogram(all_paths)
+	histogram(r.All_paths)
+	fmt.Println(r)
 	/*
 		p := all_paths[0]
 		_, f := p.Factors()

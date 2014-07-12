@@ -36,6 +36,7 @@ const PathPrefix = "/recalc/"
 func RegisterHandlers() {
 	r := mux.NewRouter()
 	r.HandleFunc(PathPrefix, error_handler(Retcalc_basic)).Methods("GET")
+	r.HandleFunc(PathPrefix, error_handler(HelloWorld)).Methods("POST")
 	http.Handle(PathPrefix, r)
 }
 

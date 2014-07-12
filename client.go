@@ -1,6 +1,6 @@
 /*
 
-main.go
+client.go
 
 My retirement calculator in Go
 
@@ -23,12 +23,35 @@ Copyright 2014 Johnnydiabetic
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
-	"retirement_calculator-go/server"
+	"retirement_calculator-go/retcalc"
 )
 
+func perror(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func get_response() {
+	url := "http://127.0.0.1:8080/recalc/"
+
+	res, err := http.Get(url)
+	perror(err)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	perror(err)
+
+	var r retcalc.RetCalc
+
+	err = json.Unmarshal(body, &r)
+
+	fmt.Println(r.Age)
+}
+
 func main() {
-	server.RegisterHandlers()
-	http.Handle("/", http.FileServer(http.Dir("static")))
-	http.ListenAndServe(":8080", nil)
+	get_response()
 }
