@@ -34,7 +34,7 @@ import (
 )
 
 func run_path(r RetCalc, s []float64) path.Path {
-	p := make([]path.YearlyEntry, r.Years, r.Years)
+	ye := make([]path.YearlyEntry, r.Years, r.Years)
 
 	for i := 0; i < r.Years; i++ {
 		if i == 0 {
@@ -52,18 +52,18 @@ func run_path(r RetCalc, s []float64) path.Path {
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns + Non_taxable_contribution
 			Deficit := 0.0
-
-			p[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
+			retired := false
+			ye[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return, Taxable_contribution,
-				Non_taxable_contribution, Yearly_expenses, Deficit}
+				Non_taxable_contribution, Yearly_expenses, Deficit, retired}
 
 		} else {
 			//Not First year calculations
-
-			st_date := time.Date(p[i-1].Year.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
+			retired := false
+			st_date := time.Date(ye[i-1].Year.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
 			age := r.Age + i
-			SOY_taxable_balance := p[i-1].EOY_taxable_balance
-			SOY_non_taxable_balance := p[i-1].EOY_non_taxable_balance
+			SOY_taxable_balance := ye[i-1].EOY_taxable_balance
+			SOY_non_taxable_balance := ye[i-1].EOY_non_taxable_balance
 			Rate_of_return := s[i]
 
 			Taxable_contribution := 0.0
@@ -88,15 +88,17 @@ func run_path(r RetCalc, s []float64) path.Path {
 				Non_taxable_contribution
 
 			// Deduce Expenses
-
-			p[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
+			if age > r.Retirement_age {
+				retired = true
+			}
+			ye[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return,
-				Taxable_contribution, Non_taxable_contribution, 0, 0}
+				Taxable_contribution, Non_taxable_contribution, 0, 0, retired}
 		}
 
 	}
 
-	return p
+	return path.Path{ye, s, r.Inflation_rate}
 }
 
 // RetCalc Object, the meat
@@ -133,7 +135,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 
-	r.N = 500
+	r.N = 5000
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
@@ -141,7 +143,7 @@ func NewRetCalc() RetCalc {
 	r.Effective_tax_rate = 0.30
 	r.Returns_tax_rate = 0.30
 	r.Non_Taxable_contribution = 17500
-	r.Taxable_contribution = 2500
+	r.Taxable_contribution = 0
 	r.Non_Taxable_balance = 0
 	r.Yearly_retirement_expenses = float64(60000)
 	r.Yearly_social_security_income = 0.0
@@ -159,7 +161,11 @@ func NewRetCalc() RetCalc {
 }
 
 func histogram(all_paths path.PathGroup) {
-	eb := all_paths.End_balances()
+	//eb := all_paths.End_balances()
+	eb := make([]float64, len(all_paths), len(all_paths))
+	for i := range all_paths {
+		eb[i] = all_paths[i].Income_from_path()
+	}
 	v := make(plotter.Values, len(eb))
 	for i := range v {
 		v[i] = eb[i]
@@ -171,7 +177,7 @@ func histogram(all_paths path.PathGroup) {
 	}
 
 	p.Title.Text = "Histogram"
-	h, err := plotter.NewHist(v, 25)
+	h, err := plotter.NewHist(v, 100)
 	if err != nil {
 		panic(err)
 	}
@@ -211,5 +217,23 @@ func main() {
 
 	sort.Sort(all_paths)
 	histogram(all_paths)
-
+	/*
+		p := all_paths[0]
+		_, f := p.Factors()
+		fmt.Printf("Return\tFactor\n")
+		for i := 0; i < len(p.Yearly_entries); i++ {
+			fmt.Printf("%f\t%f\t\n", p.Sim[i], f[i])
+		}*/
+	/*
+		for i := range all_paths {
+			fmt.Printf("Income from path: %f\n", all_paths[i].Income_from_path())
+		}
+		all_paths[2500].Print_path()
+		fmt.Println()
+		fmt.Println(all_paths[2500].Final_balance())
+		s, _ := all_paths[2500].Factors()
+		fmt.Println(s)
+		fmt.Println(all_paths[2500].Final_balance() / s)
+		fmt.Println(all_paths[2500].Income_from_path())
+	*/
 }
