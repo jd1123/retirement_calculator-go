@@ -28,6 +28,9 @@ import (
 	"retirement_calculator-go/simulation"
 	"sort"
 	"time"
+
+	"code.google.com/p/plotinum/plot"
+	"code.google.com/p/plotinum/plotter"
 )
 
 func run_path(r RetCalc, s []float64) path.Path {
@@ -80,28 +83,15 @@ func run_path(r RetCalc, s []float64) path.Path {
 				Non_taxable_returns = Rate_of_return * SOY_non_taxable_balance
 			}
 
-			Yearly_expenses := float64(0)
-			if age > r.Retirement_age {
-				Yearly_expenses = r.Yearly_retirement_expenses * math.Pow((1+r.Inflation_rate), float64(i))
-			}
-
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns +
 				Non_taxable_contribution
 
 			// Deduce Expenses
-			Deficit := 0.0
-			if (SOY_non_taxable_balance + Non_taxable_returns) < Yearly_expenses {
-				Yearly_expenses -= EOY_non_taxable_balance + Non_taxable_returns
-				EOY_non_taxable_balance = 0
-				EOY_taxable_balance -= Yearly_expenses
-			} else {
-				EOY_non_taxable_balance -= Yearly_expenses * (1 + r.Effective_tax_rate)
-			}
 
 			p[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return,
-				Taxable_contribution, Non_taxable_contribution, Yearly_expenses, Deficit}
+				Taxable_contribution, Non_taxable_contribution, 0, 0}
 		}
 
 	}
@@ -143,7 +133,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 
-	r.N = 100000
+	r.N = 500
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
@@ -168,6 +158,47 @@ func NewRetCalc() RetCalc {
 	return r
 }
 
+func histogram(all_paths path.PathGroup) {
+	eb := all_paths.End_balances()
+	v := make(plotter.Values, len(eb))
+	for i := range v {
+		v[i] = eb[i]
+	}
+
+	p, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+
+	p.Title.Text = "Histogram"
+	h, err := plotter.NewHist(v, 25)
+	if err != nil {
+		panic(err)
+	}
+	h.Normalize(1)
+	p.Add(h)
+
+	if err := p.Save(4, 4, "hist.png"); err != nil {
+		panic(err)
+	}
+}
+
+func (r RetCalc) Factors(sim []float64) (float64, []float64) {
+	factors := make([]float64, len(sim), len(sim))
+	s_factors := 0.0
+
+	for i := range sim {
+		sum := 1.0
+		for j := i + 1; j < len(sim); j++ {
+			sum *= (1 + sim[j])
+		}
+		factors[i] = sum * math.Pow(1+r.Inflation_rate, float64(i))
+		s_factors += factors[i]
+	}
+
+	return s_factors, factors
+}
+
 // main, mainly for testing
 func main() {
 	r := NewRetCalc()
@@ -179,12 +210,6 @@ func main() {
 	}
 
 	sort.Sort(all_paths)
-	ix := int(float64(r.N) * 0.20)
-	all_paths[ix].Print_path()
+	histogram(all_paths)
 
-	fmt.Println(len(all_paths))
-	//p := run_path(r, r.sims[0])
-	//p.print_path()
-	b, _ := json.Marshal(r)
-	fmt.Println(string(b))
 }

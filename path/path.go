@@ -1,3 +1,20 @@
+/*
+   This file is part of retirement_calculator.
+
+   Retirement_calculator is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   Foobar is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package path
 
 import (
@@ -32,6 +49,11 @@ func (p Path) Print_path() {
 	fmt.Printf("Average RoR: %f", sum/float64(len(p)))
 }
 
+func (p Path) Final_balance() float64 {
+	l := len(p) - 1
+	return p[l].EOY_taxable_balance + p[l].EOY_non_taxable_balance
+}
+
 // Implement the sort interface on a group of Paths
 type PathGroup []Path
 
@@ -48,4 +70,12 @@ func (p PathGroup) Less(i, j int) bool {
 
 func (p PathGroup) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
+}
+
+func (p PathGroup) End_balances() []float64 {
+	eb := make([]float64, len(p), len(p))
+	for i := range p {
+		eb[i] = p[i].Final_balance()
+	}
+	return eb
 }
