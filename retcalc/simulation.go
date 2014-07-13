@@ -18,7 +18,7 @@
    along with retirement_calculator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package simulation
+package retcalc
 
 import (
 	"math/rand"

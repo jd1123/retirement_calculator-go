@@ -24,7 +24,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"retirement_calculator-go/retcalc"
@@ -36,22 +35,19 @@ func perror(err error) {
 	}
 }
 
-func get_response() {
+func GetResponse() {
 	url := "http://127.0.0.1:8080/recalc/"
-
 	res, err := http.Get(url)
 	perror(err)
 	defer res.Body.Close()
 	body, err := ioutil.ReadAll(res.Body)
 	perror(err)
-
 	var r retcalc.RetCalc
 
 	err = json.Unmarshal(body, &r)
 
-	fmt.Println(r.Age)
 }
 
 func main() {
-	get_response()
+	GetResponse()
 }

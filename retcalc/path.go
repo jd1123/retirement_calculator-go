@@ -15,7 +15,7 @@
    along with retirement_calculator.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package path
+package retcalc
 
 import (
 	"fmt"

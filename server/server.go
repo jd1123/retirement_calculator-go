@@ -36,7 +36,7 @@ const PathPrefix = "/recalc/"
 func RegisterHandlers() {
 	r := mux.NewRouter()
 	r.HandleFunc(PathPrefix, error_handler(Retcalc_basic)).Methods("GET")
-	r.HandleFunc(PathPrefix, error_handler(HelloWorld)).Methods("POST")
+	r.HandleFunc(PathPrefix, error_handler(Retcalc_user_input)).Methods("POST")
 	http.Handle(PathPrefix, r)
 }
 
@@ -69,7 +69,15 @@ func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(rc)
 }
 
-func HelloWorld(w http.ResponseWriter, r *http.Request) error {
+func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
+	req := retcalc.RetCalc_web_input{}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		panic(err)
+	}
+	return json.NewEncoder(w).Encode(req)
+}
+
+func base_function_dec(w http.ResponseWriter, r *http.Request) error {
 	type c struct {
 		This int
 	}

@@ -23,8 +23,6 @@ package retcalc
 import (
 	"encoding/json"
 	"fmt"
-	"retirement_calculator-go/path"
-	"retirement_calculator-go/simulation"
 	"sort"
 	"time"
 
@@ -32,8 +30,8 @@ import (
 	"code.google.com/p/plotinum/plotter"
 )
 
-func run_path(r RetCalc, s []float64) path.Path {
-	ye := make([]path.YearlyEntry, r.Years, r.Years)
+func RunPath(r RetCalc, s []float64) Path {
+	ye := make([]YearlyEntry, r.Years, r.Years)
 
 	for i := 0; i < r.Years; i++ {
 		if i == 0 {
@@ -52,7 +50,7 @@ func run_path(r RetCalc, s []float64) path.Path {
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns + Non_taxable_contribution
 			Deficit := 0.0
 			retired := false
-			ye[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
+			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return, Taxable_contribution,
 				Non_taxable_contribution, Yearly_expenses, Deficit, retired}
 
@@ -90,14 +88,14 @@ func run_path(r RetCalc, s []float64) path.Path {
 			if age > r.Retirement_age {
 				retired = true
 			}
-			ye[i] = path.YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
+			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return,
 				Taxable_contribution, Non_taxable_contribution, 0, 0, retired}
 		}
 
 	}
 
-	return path.Path{ye, s, r.Inflation_rate}
+	return Path{ye, s, r.Inflation_rate}
 }
 
 // RetCalc Object, the meat
@@ -114,7 +112,19 @@ type RetCalc struct {
 	Yearly_social_security_income                  float64
 	Asset_volatility, Expected_rate_of_return      float64
 	Inflation_rate                                 float64
-	All_paths                                      path.PathGroup
+	All_paths                                      PathGroup
+}
+
+type RetCalc_web_input struct {
+	Age, Retirement_age, Terminal_age              int
+	Effective_tax_rate, Returns_tax_rate           float64
+	Years                                          int
+	N                                              int
+	Non_Taxable_contribution, Taxable_contribution float64
+	Non_Taxable_balance, Taxable_balance           float64
+	Yearly_social_security_income                  float64
+	Asset_volatility, Expected_rate_of_return      float64
+	Inflation_rate                                 float64
 }
 
 func NewRetCalc_from_json(json_obj []byte) RetCalc {
@@ -126,7 +136,8 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 
 	r.sims = make([][]float64, r.N, r.N)
 	for i := range r.sims {
-		r.sims[i] = simulation.Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.All_paths[i] = RunPath(r, r.sims[i])
 	}
 
 	return r
@@ -152,17 +163,17 @@ func NewRetCalc() RetCalc {
 	r.Expected_rate_of_return = 0.07
 	r.Inflation_rate = 0.035
 	r.sims = make([][]float64, r.N, r.N)
-	r.All_paths = make([]path.Path, r.N, r.N)
+	r.All_paths = make([]Path, r.N, r.N)
 	for i := range r.sims {
-		r.sims[i] = simulation.Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
-		r.All_paths[i] = run_path(r, r.sims[i])
+		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.All_paths[i] = RunPath(r, r.sims[i])
 	}
 	sort.Sort(r.All_paths)
 
 	return r
 }
 
-func histogram(all_paths path.PathGroup) {
+func histogram(all_paths PathGroup) {
 	//eb := all_paths.End_balances()
 	eb := make([]float64, len(all_paths), len(all_paths))
 	for i := range all_paths {
@@ -200,7 +211,7 @@ func main() {
 		all_paths = make([]path.Path, r.N, r.N)
 
 		for i := 0; i < r.N; i++ {
-			all_paths[i] = run_path(r, r.sims[i])
+			all_paths[i] = RunPath(r, r.sims[i])
 		}*/
 
 	histogram(r.All_paths)
