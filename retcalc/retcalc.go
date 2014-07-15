@@ -27,18 +27,24 @@ import (
 	"time"
 
 	//"code.google.com/p/plotinum/plot"
+	"code.google.com/p/plotinum/plot"
 	"code.google.com/p/plotinum/plotter"
 )
 
 func (r RetCalc) RunIncomes() []float64 {
 	incomes := make([]float64, len(r.sims), len(r.sims))
 	for i := range r.sims {
-		total_wealth := 0.0
+		taxed_total_wealth := 0.0
+		untaxed_total_wealth := 0.0
+		sum_t, sum_ut := 0.0, 0.0
 		for j := range r.sims[i] {
-			total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
-			total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
+			taxed_total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			sum_ut += r.sims[i].GrowthFactor(j)
+			sum_t += r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
 		}
-		incomes[i] = total_wealth
+		f, _ := r.All_paths[i].Factors()
+		incomes[i] = (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
 	}
 	return incomes
 }
@@ -191,24 +197,24 @@ func NewRetCalc() RetCalc {
 	return r
 }
 
-func HistoFromSlice(slice []float64) *plotter.Histogram{
-  v:=make(plotter.Values, len(slice))
-  for i := range v{
-    v[i]=slice[i]
-  }
-  h,err:=plotter.NewHist(v, 150)
-  if err != nil{
-    panic(err)
-  }
-  return h
+func HistoFromSlice(slice []float64) *plotter.Histogram {
+	v := make(plotter.Values, len(slice))
+	for i := range v {
+		v[i] = slice[i]
+	}
+	h, err := plotter.NewHist(v, 150)
+	if err != nil {
+		panic(err)
+	}
+	return h
 }
 
-/*
-func histogram(all_paths PathGroup) {
+func Histogram(r RetCalc) {
 	//eb := all_paths.End_balances()
-	eb := make([]float64, len(all_paths), len(all_paths))
-	for i := range all_paths {
-		eb[i] = all_paths[i].Income_from_path()
+	eb := make([]float64, len(r.All_paths), len(r.All_paths))
+	incs := r.RunIncomes()
+	for i := range incs {
+		eb[i] = incs[i]
 	}
 	v := make(plotter.Values, len(eb))
 	for i := range v {
@@ -225,14 +231,14 @@ func histogram(all_paths PathGroup) {
 	if err != nil {
 		panic(err)
 	}
-	h.Normalize(1)
+	//h.Normalize(1)
 	p.Add(h)
 
 	if err := p.Save(4, 4, "hist.png"); err != nil {
 		panic(err)
 	}
 	fmt.Println(h)
-}*/
+}
 
 // main, mainly for testing
 func main() {

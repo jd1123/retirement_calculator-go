@@ -49,5 +49,8 @@ func GetResponse() {
 }
 
 func main() {
-	GetResponse()
+	//	GetResponse()
+	rc := retcalc.NewRetCalc()
+	//fmt.Println(rc.RunIncomes())
+	retcalc.Histogram(rc)
 }
