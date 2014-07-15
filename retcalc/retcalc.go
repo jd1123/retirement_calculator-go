@@ -26,8 +26,8 @@ import (
 	"sort"
 	"time"
 
-	"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plotter"
+//	"code.google.com/p/plotinum/plot"
+//	"code.google.com/p/plotinum/plotter"
 )
 
 func RunPath(r RetCalc, s []float64) Path {
@@ -172,7 +172,7 @@ func NewRetCalc() RetCalc {
 
 	return r
 }
-
+/*
 func histogram(all_paths PathGroup) {
 	//eb := all_paths.End_balances()
 	eb := make([]float64, len(all_paths), len(all_paths))
@@ -201,7 +201,7 @@ func histogram(all_paths PathGroup) {
 		panic(err)
 	}
 	fmt.Println(h)
-}
+}*/
 
 // main, mainly for testing
 func main() {
@@ -214,7 +214,7 @@ func main() {
 			all_paths[i] = RunPath(r, r.sims[i])
 		}*/
 
-	histogram(r.All_paths)
+	//histogram(r.All_paths)
 	fmt.Println(r)
 	/*
 		p := all_paths[0]
