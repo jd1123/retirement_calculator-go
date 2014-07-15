@@ -33,14 +33,17 @@ import (
 
 const AllDataPrefix = "/alldata/"
 const IncomesPrefix = "/incomes/"
+const PathPrefix = "/paths/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
+  r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
 	http.Handle(AllDataPrefix, r)
 	http.Handle(IncomesPrefix, r)
+  http.Handle(PathPrefix,r)
 }
 
 // badRequest is handled by setting the status code in the reply to StatusBadRequest.
@@ -82,7 +85,7 @@ func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
 
 func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
-	return json.NewEncoder(w).Encode(rc.RunIncomes())
+	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))
 }
 
 func SinglePath(w http.ResponseWriter, r *http.Request) error {
