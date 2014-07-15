@@ -31,13 +31,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const PathPrefix = "/recalc/"
+const AllDataPrefix = "/alldata/"
+const IncomesPrefix = "/incomes/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
-	r.HandleFunc(PathPrefix, error_handler(Retcalc_basic)).Methods("GET")
-	r.HandleFunc(PathPrefix, error_handler(Retcalc_user_input)).Methods("POST")
-	http.Handle(PathPrefix, r)
+	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
+	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
+	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
+	http.Handle(AllDataPrefix, r)
+	http.Handle(IncomesPrefix, r)
 }
 
 // badRequest is handled by setting the status code in the reply to StatusBadRequest.
@@ -77,10 +80,12 @@ func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(req)
 }
 
-func base_function_dec(w http.ResponseWriter, r *http.Request) error {
-	type c struct {
-		This int
-	}
-	s := c{2}
-	return json.NewEncoder(w).Encode(s)
+func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
+	rc := retcalc.NewRetCalc()
+	return json.NewEncoder(w).Encode(rc.RunIncomes())
+}
+
+func SinglePath(w http.ResponseWriter, r *http.Request) error {
+	rc := retcalc.NewRetCalc()
+	return json.NewEncoder(w).Encode(rc.PercentilePath(0.25))
 }

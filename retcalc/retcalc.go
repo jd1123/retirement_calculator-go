@@ -26,9 +26,27 @@ import (
 	"sort"
 	"time"
 
-//	"code.google.com/p/plotinum/plot"
-//	"code.google.com/p/plotinum/plotter"
+	//	"code.google.com/p/plotinum/plot"
+	//	"code.google.com/p/plotinum/plotter"
 )
+
+func (r RetCalc) RunIncomes() []float64 {
+	incomes := make([]float64, len(r.sims), len(r.sims))
+	for i := range r.sims {
+		total_wealth := 0.0
+		for j := range r.sims[i] {
+			total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
+			total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+		}
+		incomes[i] = total_wealth
+	}
+	return incomes
+}
+
+func (r RetCalc) PercentilePath(percentile float64) Path {
+	ix := int(float64(r.N) * percentile)
+	return r.All_paths[ix]
+}
 
 func RunPath(r RetCalc, s []float64) Path {
 	ye := make([]YearlyEntry, r.Years, r.Years)
@@ -105,7 +123,7 @@ type RetCalc struct {
 	Effective_tax_rate, Returns_tax_rate           float64
 	Years                                          int
 	N                                              int
-	sims                                           [][]float64
+	sims                                           []Sim
 	Non_Taxable_contribution, Taxable_contribution float64
 	Non_Taxable_balance, Taxable_balance           float64
 	Yearly_retirement_expenses                     float64
@@ -134,7 +152,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 		fmt.Println("Error")
 	}
 
-	r.sims = make([][]float64, r.N, r.N)
+	r.sims = make([]Sim, r.N, r.N)
 	for i := range r.sims {
 		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
 		r.All_paths[i] = RunPath(r, r.sims[i])
@@ -162,7 +180,7 @@ func NewRetCalc() RetCalc {
 	r.Asset_volatility = 0.15
 	r.Expected_rate_of_return = 0.07
 	r.Inflation_rate = 0.035
-	r.sims = make([][]float64, r.N, r.N)
+	r.sims = make([]Sim, r.N, r.N)
 	r.All_paths = make([]Path, r.N, r.N)
 	for i := range r.sims {
 		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
@@ -172,6 +190,7 @@ func NewRetCalc() RetCalc {
 
 	return r
 }
+
 /*
 func histogram(all_paths PathGroup) {
 	//eb := all_paths.End_balances()
