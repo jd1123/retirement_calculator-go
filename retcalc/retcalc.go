@@ -26,8 +26,8 @@ import (
 	"sort"
 	"time"
 
-	//	"code.google.com/p/plotinum/plot"
-	//	"code.google.com/p/plotinum/plotter"
+	//"code.google.com/p/plotinum/plot"
+	"code.google.com/p/plotinum/plotter"
 )
 
 func (r RetCalc) RunIncomes() []float64 {
@@ -189,6 +189,18 @@ func NewRetCalc() RetCalc {
 	sort.Sort(r.All_paths)
 
 	return r
+}
+
+func HistoFromSlice(slice []float64) *plotter.Histogram{
+  v:=make(plotter.Values, len(slice))
+  for i := range v{
+    v[i]=slice[i]
+  }
+  h,err:=plotter.NewHist(v, 150)
+  if err != nil{
+    panic(err)
+  }
+  return h
 }
 
 /*

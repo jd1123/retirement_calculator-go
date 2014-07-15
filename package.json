@@ -1,0 +1,29 @@
+{
+  "name": "retirement_calculator-go",
+  "version": "0.0.0",
+  "description": "Advanced Retirement Calculator =============================",
+  "main": "index.js",
+  "scripts": {
+    "start": "go run main.go",
+    "watch": "watchify frontend/main.js -o static/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/keyvanfatehi/retirement_calculator-go"
+  },
+  "author": "",
+  "license": "GPL",
+  "bugs": {
+    "url": "https://github.com/keyvanfatehi/retirement_calculator-go/issues"
+  },
+  "homepage": "https://github.com/keyvanfatehi/retirement_calculator-go",
+  "devDependencies": {
+    "browserify": "^4.2.0",
+    "watchify": "^0.10.2"
+  },
+  "dependencies": {
+    "highcharts-browserify": "0.0.1-3.0.10",
+    "js-beautify": "^1.5.1",
+    "lodash": "^2.4.1"
+  }
+}
