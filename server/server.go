@@ -1,25 +1,3 @@
-/*
-
-   server.go
-
-   This file is part of retirement_calculator.
-
-   Retirement_calculator is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
-
-   Retirement_calculator is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with retirement_calculator.  If not, see <http://www.gnu.org/licenses/>.
-
-   Copyright 2014 Johnnydiabetic
-*/
-
 package server
 
 import (
@@ -37,13 +15,13 @@ const PathPrefix = "/paths/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
-  r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
+	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
 	http.Handle(AllDataPrefix, r)
 	http.Handle(IncomesPrefix, r)
-  http.Handle(PathPrefix,r)
+	http.Handle(PathPrefix, r)
 }
 
 // badRequest is handled by setting the status code in the reply to StatusBadRequest.
