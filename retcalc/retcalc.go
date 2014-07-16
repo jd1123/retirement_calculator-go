@@ -24,106 +24,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"time"
-
-	//"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plotter"
 )
 
-func (r RetCalc) RunIncomes() []float64 {
-	incomes := make([]float64, len(r.sims), len(r.sims))
-	for i := range r.sims {
-		taxed_total_wealth := 0.0
-		untaxed_total_wealth := 0.0
-		sum_t, sum_ut := 0.0, 0.0
-		for j := range r.sims[i] {
-			untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
-			taxed_total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
-			sum_ut += r.sims[i].GrowthFactor(j)
-			sum_t += r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
-		}
-		f, _ := r.All_paths[i].Factors()
-		incomes[i] = (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
-	}
-	return incomes
-}
-
-func (r RetCalc) PercentilePath(percentile float64) Path {
-	ix := int(float64(r.N) * percentile)
-	return r.All_paths[ix]
-}
-
-func RunPath(r RetCalc, s []float64) Path {
-	ye := make([]YearlyEntry, r.Years, r.Years)
-
-	for i := 0; i < r.Years; i++ {
-		if i == 0 {
-			st_date := time.Date(time.Now().Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
-			age := r.Age
-			SOY_taxable_balance := r.Taxable_balance
-			SOY_non_taxable_balance := r.Non_Taxable_balance
-			Rate_of_return := s[i]
-			Taxable_contribution := r.Taxable_contribution
-			Non_taxable_contribution := r.Non_Taxable_contribution
-			Taxable_returns := Rate_of_return * SOY_taxable_balance
-			Non_taxable_returns := Rate_of_return * SOY_non_taxable_balance
-			Yearly_expenses := float64(0)
-
-			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
-			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns + Non_taxable_contribution
-			Deficit := 0.0
-			retired := false
-			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
-				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return, Taxable_contribution,
-				Non_taxable_contribution, Yearly_expenses, Deficit, retired}
-
-		} else {
-			//Not First year calculations
-			retired := false
-			st_date := time.Date(ye[i-1].Year.Year()+1, 1, 1, 0, 0, 0, 0, time.UTC)
-			age := r.Age + i
-			SOY_taxable_balance := ye[i-1].EOY_taxable_balance
-			SOY_non_taxable_balance := ye[i-1].EOY_non_taxable_balance
-			Rate_of_return := s[i]
-
-			Taxable_contribution := 0.0
-			Non_taxable_contribution := 0.0
-			if age <= r.Retirement_age {
-				Taxable_contribution = r.Taxable_contribution
-				Non_taxable_contribution = r.Non_Taxable_contribution
-			}
-
-			Taxable_returns := 0.0
-			if SOY_taxable_balance > 0 {
-				Taxable_returns = Rate_of_return * SOY_taxable_balance * (1 - r.Returns_tax_rate)
-			}
-
-			Non_taxable_returns := 0.0
-			if SOY_non_taxable_balance > 0 {
-				Non_taxable_returns = Rate_of_return * SOY_non_taxable_balance
-			}
-
-			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
-			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns +
-				Non_taxable_contribution
-
-			// Deduce Expenses
-			if age > r.Retirement_age {
-				retired = true
-			}
-			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
-				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return,
-				Taxable_contribution, Non_taxable_contribution, 0, 0, retired}
-		}
-
-	}
-
-	return Path{ye, s, r.Inflation_rate}
-}
+// Struct definitions
 
 // RetCalc Object, the meat
 // also the RetCalc "constructors"
+// This needs to be reduced - we will have it only hold all the
+// Necessary info and run the calcs on API call
 type RetCalc struct {
 	Age, Retirement_age, Terminal_age              int
 	Effective_tax_rate, Returns_tax_rate           float64
@@ -139,6 +47,10 @@ type RetCalc struct {
 	All_paths                                      PathGroup
 }
 
+// This is the IDEAL RetCalc Object but
+// required further refacoring that I cannot do
+// while on the train and having to take a massive
+// dump with the guy next to me sharting his pants
 type RetCalc_web_input struct {
 	Age, Retirement_age, Terminal_age              int
 	Effective_tax_rate, Returns_tax_rate           float64
@@ -151,6 +63,62 @@ type RetCalc_web_input struct {
 	Inflation_rate                                 float64
 }
 
+// METHODS
+
+// Runs all the paths - dont do this in the constructor
+// because the data will be lost when passing a smaller,
+// client side object that is portable
+func (r RetCalc) AllPaths() PathGroup {
+	all_paths := make(PathGroup, len(r.sims), len(r.sims))
+	for i := range r.sims {
+		all_paths[i] = RunPath(r, r.sims[i])
+	}
+	sort.Sort(all_paths)
+	return all_paths
+}
+
+// The path struct should implement this logic, it is misplaced
+func (r RetCalc) RunIncomes() []float64 {
+	incomes := make([]float64, len(r.sims), len(r.sims))
+	for i := range r.sims {
+		taxed_total_wealth := 0.0
+		untaxed_total_wealth := 0.0
+		sum_t, sum_ut := 0.0, 0.0
+		for j := range r.sims[i] {
+			if j+r.Age < r.Retirement_age {
+				untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
+				taxed_total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+				sum_ut += r.sims[i].GrowthFactor(j)
+				sum_t += r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			}
+		}
+		f, _ := r.All_paths[i].Factors()
+		incomes[i] = (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
+	}
+	return incomes
+}
+
+func (r RetCalc) PercentilePath(percentile float64) Path {
+	ix := int(float64(r.N) * percentile)
+	return r.All_paths[ix]
+}
+
+func (r RetCalc) IncomeProbability() float64 {
+	incomes := r.RunIncomes()
+	counter := 0
+	for i := range incomes {
+		if incomes[i] >= r.Yearly_retirement_expenses {
+			counter++
+		}
+	}
+	fmt.Printf("Counter: %i Income: %f N: %i\n", counter, r.Yearly_retirement_expenses, r.N)
+	return float64(counter) / float64(r.N)
+}
+
+// Constructors
+
+// This constructor will populate a RetCalc from
+// JSON input from the web ----- NEEDS work
 func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
@@ -167,20 +135,21 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	return r
 }
 
+// A default RetCalc
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 
-	r.N = 2500
+	r.N = 10000
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
 	r.Years = r.Terminal_age - r.Age
 	r.Effective_tax_rate = 0.30
 	r.Returns_tax_rate = 0.30
-	r.Non_Taxable_contribution = 17500
+	r.Non_Taxable_contribution = 17500.0
 	r.Taxable_contribution = 0
 	r.Non_Taxable_balance = 0
-	r.Yearly_retirement_expenses = float64(60000)
+	r.Yearly_retirement_expenses = float64(100000)
 	r.Yearly_social_security_income = 0.0
 	r.Taxable_balance = 0.0
 	r.Asset_volatility = 0.15
@@ -197,79 +166,29 @@ func NewRetCalc() RetCalc {
 	return r
 }
 
-func HistoFromSlice(slice []float64) *plotter.Histogram {
-	v := make(plotter.Values, len(slice))
-	for i := range v {
-		v[i] = slice[i]
-	}
-	h, err := plotter.NewHist(v, 150)
-	if err != nil {
-		panic(err)
-	}
-	return h
-}
+// Dumbed Down version of constructor
+func NewRetCalc_b() RetCalc {
+	r := RetCalc{}
 
-func Histogram(r RetCalc) {
-	//eb := all_paths.End_balances()
-	eb := make([]float64, len(r.All_paths), len(r.All_paths))
-	incs := r.RunIncomes()
-	for i := range incs {
-		eb[i] = incs[i]
+	r.N = 10000
+	r.Age = 22
+	r.Retirement_age = 65
+	r.Terminal_age = 90
+	r.Years = r.Terminal_age - r.Age
+	r.Effective_tax_rate = 0.30
+	r.Returns_tax_rate = 0.30
+	r.Non_Taxable_contribution = 17500
+	r.Taxable_contribution = 0
+	r.Non_Taxable_balance = 0
+	r.Yearly_retirement_expenses = float64(60000)
+	r.Yearly_social_security_income = 0.0
+	r.Taxable_balance = 0.0
+	r.Asset_volatility = 0.15
+	r.Expected_rate_of_return = 0.07
+	r.Inflation_rate = 0.035
+	r.sims = make([]Sim, r.N, r.N)
+	for i := range r.sims {
+		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
 	}
-	v := make(plotter.Values, len(eb))
-	for i := range v {
-		v[i] = eb[i]
-	}
-
-	p, err := plot.New()
-	if err != nil {
-		panic(err)
-	}
-
-	p.Title.Text = "Histogram"
-	h, err := plotter.NewHist(v, 100)
-	if err != nil {
-		panic(err)
-	}
-	//h.Normalize(1)
-	p.Add(h)
-
-	if err := p.Save(4, 4, "hist.png"); err != nil {
-		panic(err)
-	}
-	fmt.Println(h)
-}
-
-// main, mainly for testing
-func main() {
-	r := NewRetCalc()
-	/*
-		var all_paths path.PathGroup
-		all_paths = make([]path.Path, r.N, r.N)
-
-		for i := 0; i < r.N; i++ {
-			all_paths[i] = RunPath(r, r.sims[i])
-		}*/
-
-	//histogram(r.All_paths)
-	fmt.Println(r)
-	/*
-		p := all_paths[0]
-		_, f := p.Factors()
-		fmt.Printf("Return\tFactor\n")
-		for i := 0; i < len(p.Yearly_entries); i++ {
-			fmt.Printf("%f\t%f\t\n", p.Sim[i], f[i])
-		}*/
-	/*
-		for i := range all_paths {
-			fmt.Printf("Income from path: %f\n", all_paths[i].Income_from_path())
-		}
-		all_paths[2500].Print_path()
-		fmt.Println()
-		fmt.Println(all_paths[2500].Final_balance())
-		s, _ := all_paths[2500].Factors()
-		fmt.Println(s)
-		fmt.Println(all_paths[2500].Final_balance() / s)
-		fmt.Println(all_paths[2500].Income_from_path())
-	*/
+	return r
 }

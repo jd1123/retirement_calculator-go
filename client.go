@@ -24,6 +24,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"retirement_calculator-go/retcalc"
@@ -50,7 +51,11 @@ func GetResponse() {
 
 func main() {
 	//	GetResponse()
-	rc := retcalc.NewRetCalc()
+	rc := retcalc.NewRetCalc_b()
+	rc.Yearly_retirement_expenses = 35000.0
+	rc.Non_Taxable_contribution = 17500.0
+	rc.All_paths = rc.AllPaths()
 	//fmt.Println(rc.RunIncomes())
-	retcalc.Histogram(rc)
+	fmt.Println("\n")
+	fmt.Println(rc.IncomeProbability())
 }

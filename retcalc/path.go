@@ -1,3 +1,5 @@
+// The Path Object and methods
+
 /*
    This file is part of retirement_calculator.
 
@@ -53,8 +55,9 @@ func (p Path) Print_path() {
 		//fmt.Println(p[i])
 		sum += p.Yearly_entries[i].Rate_of_return
 		//fmt.Printf("Age: %d EOY Balance: %f\n", p[i].Age, p[i].EOY_taxable_balance+p[i].EOY_non_taxable_balance)
-		fmt.Printf("Age: %d EOY t_Balance: %f EOY nt_balance: %f Return: %f\n", p.Yearly_entries[i].Age,
-			p.Yearly_entries[i].EOY_taxable_balance, p.Yearly_entries[i].EOY_non_taxable_balance, p.Sim[i])
+		fmt.Printf("Age: %d EOY_B: %f cont: %f r: %f\n", p.Yearly_entries[i].Age,
+			p.Yearly_entries[i].EOY_taxable_balance+p.Yearly_entries[i].EOY_non_taxable_balance,
+			p.Yearly_entries[i].Non_taxable_contribution+p.Yearly_entries[i].Taxable_contribution, p.Sim[i])
 	}
 	fmt.Printf("Average RoR: %f", sum/float64(len(p.Yearly_entries)))
 }
