@@ -23,6 +23,7 @@ Copyright 2014 Johnnydiabetic
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"retirement_calculator-go/server"
 )
@@ -30,5 +31,6 @@ import (
 func main() {
 	server.RegisterHandlers()
 	http.Handle("/", http.FileServer(http.Dir("./static")))
+	fmt.Println("RetCalc server on: Listening on port 8080")
 	http.ListenAndServe(":8080", nil)
 }
