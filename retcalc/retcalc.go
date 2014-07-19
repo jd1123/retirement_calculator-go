@@ -63,8 +63,9 @@ func (r RetCalc) RunIncomes() []float64 {
 	for i := range r.sims {
 		untaxed_total_wealth := r.Non_Taxable_balance * r.sims[i].GrowthFactor(0)
 		taxed_total_wealth := r.Taxable_balance * r.sims[i].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
-		ft, _ := r.All_paths[i].Factors()
-		fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft, (untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
+		//ft, _ := r.All_paths[i].Factors()
+		//fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft,
+		//	(untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
 		sum_t, sum_ut := 0.0, 0.0
 		for j := range r.sims[i] {
 			if j+r.Age < r.Retirement_age {

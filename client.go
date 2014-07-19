@@ -31,10 +31,10 @@ func main() {
 	//	GetResponse()
 	rc := retcalc.NewRetCalc_b()
 	rc.Yearly_retirement_expenses = 60000.0
-	rc.Non_Taxable_contribution = 42000.0
-	rc.Non_Taxable_balance = 100000.0
-	rc.Taxable_contribution = 18000.0
-	rc.Taxable_balance = 100000.0
+	rc.Non_Taxable_contribution = 0.0
+	rc.Non_Taxable_balance = 0.0
+	rc.Taxable_contribution = 17500.0
+	rc.Taxable_balance = 0.0
 	rc.All_paths = rc.RunAllPaths()
 	//fmt.Println(rc.RunIncomes())
 	fmt.Println("\n")

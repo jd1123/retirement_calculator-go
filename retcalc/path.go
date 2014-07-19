@@ -70,13 +70,16 @@ func (p Path) Factors() (float64, []float64) {
 		}
 	}
 
-	return s_factors, factors
-}
+	s := 0.0
+	for i := range factors {
+		if i != 0 {
+			if factors[i-1] != 0 && factors[i] != 0 {
+				s += factors[i]
+			}
+		}
+	}
 
-// Calculates the yearly income from a particular path
-func (p Path) Income_from_path() float64 {
-	s_factors, _ := p.Factors()
-	return p.Final_balance() / s_factors
+	return s, factors
 }
 
 // Implement the sort interface on a group of Paths
@@ -87,11 +90,11 @@ func (p PathGroup) Len() int {
 }
 
 func (p PathGroup) Less(i, j int) bool {
-	//li, lj := len(p[i].Yearly_entries), len(p[j].Yearly_entries)
-	vi := p[i].Income_from_path()
-	vj := p[j].Income_from_path()
-	//vi := p[i].Yearly_entries[li-1].EOY_taxable_balance + p[i].Yearly_entries[li-1].EOY_non_taxable_balance
-	//vj := p[j].Yearly_entries[lj-1].EOY_taxable_balance + p[j].Yearly_entries[lj-1].EOY_non_taxable_balance
+	li, lj := len(p[i].Yearly_entries), len(p[j].Yearly_entries)
+	//vi := p[i].End_Balances()
+	//vj := p[j].End_Balances()
+	vi := p[i].Yearly_entries[li-1].EOY_taxable_balance + p[i].Yearly_entries[li-1].EOY_non_taxable_balance
+	vj := p[j].Yearly_entries[lj-1].EOY_taxable_balance + p[j].Yearly_entries[lj-1].EOY_non_taxable_balance
 	return vi < vj
 }
 
