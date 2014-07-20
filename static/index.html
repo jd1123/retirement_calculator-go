@@ -8,8 +8,36 @@
     <script src="app.js" type="text/javascript" charset="utf-8"></script>
   </head>
   <body>
+
+  <div id="inputs">
+
+    <label for="">Age</label>
+    <input data-key="Age" data-type="int" type="text" value="" >
+    <br>
+    <label for="">Retirement Age</label>
+    <input data-key="Retirement_age" data-type="int" type="text" value="" >
+    <br>
+    <label for="">Age at Death</label>
+    <input data-key="Terminal_age" data-type="int" type="text" value="" >
+    <br>
+    <label for="">Taxable Contribution</label>
+    <input data-key="Taxable_contribution" data-type="float" type="text" value="" >
+    <br>
+    <label for="">Non-taxable Contribution</label>
+    <input data-key="Non_Taxable_contribution" data-type="float" type="text" value="" >
+    <br>
+    <label for="">Taxable Balance</label>
+    <input data-key="Taxable_balance" data-type="float" type="text" value="" >
+    <br>
+    <label for="">Non-taxable Balance</label>
+    <input data-key="Non_Taxable_balance" data-type="float" type="text" value="" >
+  </div>
+
+
   <input type="submit" name="" id="gocalc" value="go" />
+
   <div id="chart" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+
   <pre id="json"></pre>
     
   </body>

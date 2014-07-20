@@ -5,21 +5,25 @@ import (
 	"log"
 	"net/http"
 	"retirement_calculator-go/retcalc"
-
+  "fmt"
+  "io/ioutil"
 	"github.com/gorilla/mux"
 )
 
 const AllDataPrefix = "/alldata/"
 const IncomesPrefix = "/incomes/"
 const PathPrefix = "/paths/"
+const InputPrefix = "/input/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
-	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
+	r.HandleFunc(InputPrefix, error_handler(RecalcFromWebInput)).Methods("POST")
+  r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
-	http.Handle(AllDataPrefix, r)
+	http.Handle(InputPrefix, r)
+  http.Handle(AllDataPrefix, r)
 	http.Handle(IncomesPrefix, r)
 	http.Handle(PathPrefix, r)
 }
@@ -48,13 +52,30 @@ func error_handler(f func(w http.ResponseWriter, r *http.Request) error) http.Ha
 	}
 }
 
+func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error{
+
+  defer r.Body.Close()
+  body, _ := ioutil.ReadAll(r.Body)
+  fmt.Println(string(body))
+
+  /* for future reference
+  if err:=json.NewDecoder(r.Body).Decode(&json_obj); err!=nil{
+    return badRequest{err}
+  }
+  */
+  rc:=retcalc.NewRetCalc_from_json(body)
+  //Take this out when done with testing
+  fmt.Println(rc)
+  return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))
+}
+
 func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
 	return json.NewEncoder(w).Encode(rc)
 }
 
 func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
-	req := retcalc.RetCalc_web_input{}
+	req := retcalc.RetCalcWebInput{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		panic(err)
 	}

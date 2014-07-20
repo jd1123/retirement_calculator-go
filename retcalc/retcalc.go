@@ -31,7 +31,7 @@ type RetCalc struct {
 // required further refacoring that I cannot do
 // while on the train and having to take a massive
 // dump with the guy next to me sharting his pants
-type RetCalc_web_input struct {
+type RetCalcWebInput struct {
 	Age, Retirement_age, Terminal_age              int
 	Effective_tax_rate, Returns_tax_rate           float64
 	Years                                          int
@@ -113,7 +113,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
 	if err != nil {
-		fmt.Println("Error")
+		fmt.Println(err)
 	}
 
 	r.sims = make([]Sim, r.N, r.N)
@@ -123,6 +123,10 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 
 	return r
 }
+
+//func NewRetCalcFromWeb(RetCalcWebInput r) Retcalc{
+
+//}
 
 // A default RetCalc
 func NewRetCalc() RetCalc {

@@ -10,12 +10,34 @@ $(document).ready(function () {
     } else {
       loading = true;
       $('pre#json').text('please wait');
-      $.getJSON('/incomes/', function (data) {
+      var payload = {};
+      $('#inputs input').each(function(i, e) {
+        var $el = $(e);
+        var type = $el.data('type');
+        var val = $el.val();
+        if ( type === "float") {
+          val = parseFloat(val);
+        } else if (type === "int") {
+          val = parseInt(val);
+        }
+        payload[$el.data('key')] = val;
+      });
+
+      var onSuccess = function (data) {
         loading = false;
         var output = beautify(JSON.stringify(data), { indent_size: 2 });
         $('pre#json').text(output);
         require('./histo')(data);
+      };
+
+      $.ajax({
+        type: "POST",
+        url: '/input/',
+        data: JSON.stringify(payload),
+        success: onSuccess,
+        dataType: 'json'
       });
+
     }
   });
 });
