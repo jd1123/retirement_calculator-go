@@ -35,6 +35,7 @@ func TestNewRetCalcJSon(t *testing.T) {
 }
 
 // Test the components of income calculation
+
 func TestGrowthFactors(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, "Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, "Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 	r := NewRetCalc_from_json(JsonObj)
@@ -62,7 +63,29 @@ func TestGrowthFactors(t *testing.T) {
 	}
 }
 
+// Not yet implemented - test will fail
 func TestInflationFactors(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, "Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, "Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	r := NewRetCalc_from_json(JsonObj)
+	r.All_paths = r.RunAllPaths()
+	r.sims[0] = make([]float64, r.Years, r.Years)
+	for i := range r.sims[0] {
+		r.sims[0][i] = 0.07
+	}
+	knownInflationFactors := make([]float64, len(r.sims[0]), len(r.sims[0]))
+	infationFactors := r.InflationFactors()
+
+	factorsGood := true
+	for i := range inflationFactors {
+		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > 0.1 {
+			factorsGood = false
+		}
+	}
+
+	if !factorsGood {
+		t.Errorf("Inflation Factors did not compute correctly")
+	}
+
 }
 
 func TestIncomeFactors(t *testing.T) {

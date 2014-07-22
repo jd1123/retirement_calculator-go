@@ -53,6 +53,10 @@ func (p Path) Final_balance() float64 {
 
 // Returns the factors and the sum of factors
 // to compute income from a final balance
+// NOTE: I think this should be renamed IncomeFactors, and
+// also think it probably should be elsewhere. It is not reusing
+// code effectively due to its location in path.go
+// Going to move it to a method of retcalc
 func (p Path) Factors() (float64, []float64) {
 	factors := make([]float64, len(p.Sim), len(p.Sim))
 	s_factors := 0.0
