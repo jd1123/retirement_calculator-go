@@ -21,26 +21,9 @@ type RetCalc struct {
 	Non_Taxable_contribution, Taxable_contribution float64
 	Non_Taxable_balance, Taxable_balance           float64
 	Yearly_retirement_expenses                     float64
-	Yearly_social_security_income                  float64
 	Asset_volatility, Expected_rate_of_return      float64
 	Inflation_rate                                 float64
 	All_paths                                      PathGroup
-}
-
-// This is the IDEAL RetCalc Object but
-// required further refacoring that I cannot do
-// while on the train and having to take a massive
-// dump with the guy next to me sharting his pants
-type RetCalcWebInput struct {
-	Age, Retirement_age, Terminal_age              int
-	Effective_tax_rate, Returns_tax_rate           float64
-	Years                                          int
-	N                                              int
-	Non_Taxable_contribution, Taxable_contribution float64
-	Non_Taxable_balance, Taxable_balance           float64
-	Yearly_social_security_income                  float64
-	Asset_volatility, Expected_rate_of_return      float64
-	Inflation_rate                                 float64
 }
 
 // METHODS
@@ -82,6 +65,26 @@ func (r RetCalc) RunIncomes() []float64 {
 	return incomes
 }
 
+func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
+	untaxed_total_wealth := r.Non_Taxable_balance * r.sims[pathIndex].GrowthFactor(0)
+	taxed_total_wealth := r.Taxable_balance * r.sims[pathIndex].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
+	//ft, _ := r.All_paths[i].Factors()
+	//fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft,
+	//	(untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
+	sum_t, sum_ut := 0.0, 0.0
+	for j := range r.sims[pathIndex] {
+		if j+r.Age < r.Retirement_age {
+			untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[pathIndex].GrowthFactor(j)
+			taxed_total_wealth += r.Taxable_contribution * r.sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			sum_ut += r.sims[pathIndex].GrowthFactor(j)
+			sum_t += r.sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+		}
+	}
+	f, _ := r.All_paths[pathIndex].Factors()
+	income := (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
+	return income
+}
+
 func (r RetCalc) PercentileIncome(percentile float64) float64 {
 	incomes := r.RunIncomes()
 	ix := int(percentile * float64(r.N))
@@ -115,6 +118,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	if err != nil {
 		fmt.Println(err)
 	}
+	r.Years = r.Terminal_age - r.Age
 
 	r.sims = make([]Sim, r.N, r.N)
 	for i := range r.sims {
@@ -124,11 +128,6 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	return r
 }
 
-//func NewRetCalcFromWeb(RetCalcWebInput r) Retcalc{
-
-//}
-
-// A default RetCalc
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 
@@ -143,7 +142,6 @@ func NewRetCalc() RetCalc {
 	r.Taxable_contribution = 0
 	r.Non_Taxable_balance = 0
 	r.Yearly_retirement_expenses = float64(100000)
-	r.Yearly_social_security_income = 0.0
 	r.Taxable_balance = 0.0
 	r.Asset_volatility = 0.15
 	r.Expected_rate_of_return = 0.07
@@ -174,7 +172,6 @@ func NewRetCalc_b() RetCalc {
 	r.Taxable_contribution = 0
 	r.Non_Taxable_balance = 0
 	r.Yearly_retirement_expenses = float64(60000)
-	r.Yearly_social_security_income = 0.0
 	r.Taxable_balance = 0.0
 	r.Asset_volatility = 0.15
 	r.Expected_rate_of_return = 0.07
