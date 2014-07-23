@@ -3,6 +3,7 @@ package retcalc
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -80,7 +81,7 @@ func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
 			sum_t += r.sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
 		}
 	}
-	f, _ := r.All_paths[pathIndex].Factors()
+	f, _ := r.IncomeFactors(pathIndex)
 	income := (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
 	return income
 }
@@ -114,6 +115,37 @@ func (r RetCalc) SetSim(ix int, newSim []float64) {
 	}
 }
 
+func (r RetCalc) InflationFactors() []float64 {
+	inflationFactors := make([]float64, r.Years, r.Years)
+	for i := 0; i < r.Years; i++ {
+		inflationFactors[i] = math.Pow(1+r.Inflation_rate, float64(i+1))
+	}
+	return inflationFactors
+}
+
+func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
+	sim := r.sims[0]
+	l := len(sim)
+	incomeFactors := make([]float64, l, l)
+	inflationFactors := r.InflationFactors()
+	sumFactors := 0.0
+	for i := range incomeFactors {
+		if r.Age+i > r.Retirement_age {
+			incomeFactors[i] = r.sims[simIdx].GrowthFactor(i) * inflationFactors[i]
+			sumFactors += incomeFactors[i]
+		} else {
+			incomeFactors[i] = 0.0
+		}
+	}
+
+	return sumFactors, incomeFactors
+
+}
+
+func (r RetCalc) GrowthFactors(startYear, simIdx int) float64 {
+	return r.sims[simIdx].GrowthFactor(startYear)
+}
+
 // Constructors
 
 // This constructor will populate a RetCalc from
@@ -124,7 +156,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	if err != nil {
 		fmt.Println(err)
 	}
-	r.Years = r.Terminal_age - r.Age
+	r.Years = r.Terminal_age - r.Age + 1
 
 	r.sims = make([]Sim, r.N, r.N)
 	for i := range r.sims {
@@ -141,7 +173,7 @@ func NewRetCalc() RetCalc {
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
-	r.Years = r.Terminal_age - r.Age
+	r.Years = r.Terminal_age - r.Age + 1
 	r.Effective_tax_rate = 0.30
 	r.Returns_tax_rate = 0.30
 	r.Non_Taxable_contribution = 17500.0
@@ -171,7 +203,7 @@ func NewRetCalc_b() RetCalc {
 	r.Age = 22
 	r.Retirement_age = 65
 	r.Terminal_age = 90
-	r.Years = r.Terminal_age - r.Age
+	r.Years = r.Terminal_age - r.Age + 1
 	r.Effective_tax_rate = 0.30
 	r.Returns_tax_rate = 0.30
 	r.Non_Taxable_contribution = 17500

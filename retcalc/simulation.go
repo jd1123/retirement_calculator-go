@@ -9,7 +9,7 @@ type Sim []float64
 
 func (s Sim) GrowthFactor(startYear int) float64 {
 	fac := 1.0
-	for i := startYear; i < len(s); i++ {
+	for i := startYear; i < len(s)-1; i++ {
 		fac *= (1 + s[i])
 	}
 	return fac

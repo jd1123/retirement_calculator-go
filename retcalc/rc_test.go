@@ -24,7 +24,7 @@ func TestNewRetCalcJSon(t *testing.T) {
 	if rc.Age != 22 && rc.Retirement_age != 65 && rc.Terminal_age != 90 && rc.Effective_tax_rate != 0.3 && rc.N != 20000 {
 		t.Errorf("json did not initialize the retcalc object correctly: values do not match known values")
 	}
-	if rc.Years != rc.Terminal_age-rc.Age {
+	if rc.Years != rc.Terminal_age-rc.Age+1 {
 		t.Errorf("RetCalc.Years did not intitialize correctly: Years did not computer correctly")
 	}
 
@@ -105,6 +105,36 @@ func TestInflationFactors(t *testing.T) {
 }
 */
 
+func TestInflationFactors(t *testing.T) {
+	knownInflationFactors := []float64{1.035, 1.071225, 1.108717875, 1.147523000625, 1.18768630564687, 1.22925532634452, 1.27227926276657, 1.3168090369634,
+		1.36289735325712, 1.41059876062112, 1.45996971724286, 1.51106865734636, 1.56395606035348, 1.61869452246585, 1.67534883075216,
+		1.73398603982848, 1.79467555122248, 1.85748919551527, 1.9225013173583, 1.98978886346584, 2.05943147368715, 2.1315115752662,
+		2.20611448040051, 2.28332848721453, 2.36324498426704, 2.44595855871639, 2.53156710827146, 2.62017195706096, 2.71187797555809,
+		2.80679370470263, 2.90503148436722, 3.00670758632007, 3.11194235184127, 3.22086033415572, 3.33359044585117, 3.45026611145596,
+		3.57102542535692, 3.69601131524441, 3.82537171127796, 3.95925972117269, 4.09783381141374, 4.24125799481322, 4.38970202463168,
+		4.54334159549379, 4.70235855133607, 4.86694110063283, 5.03728403915498, 5.2135889805254, 5.39606459484379, 5.58492685566332,
+		5.78039929561154, 5.98271327095794, 6.19210823544147, 6.40883202368192, 6.63314114451079, 6.86530108456866, 7.10558662252857,
+		7.35428215431707, 7.61168202971816, 7.8780909007583, 8.15382408228484, 8.43920792516481, 8.73458020254557, 9.04029050963467,
+		9.35670067747188, 9.6841852011834, 10.0231316832248, 10.3739412921377, 10.7370292373625}
+
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+
+	r := NewRetCalc_from_json(JsonObj)
+	r.sims[0] = make([]float64, r.Years, r.Years)
+	for i := range r.sims[0] {
+		r.sims[0][i] = 0.07
+	}
+	r.All_paths = r.RunAllPaths()
+	inflationFactors := r.InflationFactors()
+	for i := range inflationFactors {
+		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > 1 {
+			t.Errorf("InflationFactors() does not produce known factors")
+		}
+	}
+}
+
 // Good test, I think - caught a bug
 func TestIncomeFactors(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
@@ -119,7 +149,7 @@ func TestIncomeFactors(t *testing.T) {
 	r.All_paths = r.RunAllPaths()
 
 	pth := RunPath(r, r.sims[0])
-	sum, factors := pth.Factors()
+	sum, factors := r.IncomeFactors(0)
 	knownSum := 411.683115
 	knownFactors := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 23.8520881187686, 23.0718796289023, 22.3171919774896, 21.5871903707493, 20.8810673212388, 20.1980417546562, 19.5373581458591,
@@ -157,8 +187,8 @@ func TestRunIncome(t *testing.T) {
 		rc.sims[0][i] = 0.07
 	}
 	rc.All_paths = rc.RunAllPaths()
-	knownIncome := 42978
-	if int(rc.IncomeOnPath(0)) != knownIncome {
+	knownIncome := 42978.0
+	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > 250 {
 		t.Errorf("IncomeOnPath() does not match known value")
 	}
 }
