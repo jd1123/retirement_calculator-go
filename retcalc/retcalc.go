@@ -36,7 +36,7 @@ func (r RetCalc) RunAllPaths() PathGroup {
 	for i := range r.sims {
 		all_paths[i] = RunPath(r, r.sims[i])
 	}
-	sort.Sort(all_paths)
+	//sort.Sort(all_paths)
 	return all_paths
 }
 
@@ -106,6 +106,12 @@ func (r RetCalc) IncomeProbability() float64 {
 	}
 	fmt.Printf("Counter: %d Income: %f N: %d\n", counter, r.Yearly_retirement_expenses, r.N)
 	return float64(counter) / float64(r.N)
+}
+
+func (r RetCalc) SetSim(ix int, newSim []float64) {
+	for i := range r.sims[ix] {
+		r.sims[ix][i] = newSim[i]
+	}
 }
 
 // Constructors
