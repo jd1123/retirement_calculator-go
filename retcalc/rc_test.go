@@ -244,4 +244,37 @@ func TestRunIncomes(t *testing.T) {
 	if !incomesOk {
 		t.Errorf("Incomes do not calculate correctly for RunIncomes()")
 	}
+	if !sort.Float64sAreSorted(runIncomes) {
+		t.Errorf("Incomes from RetCalc.RunIncomes() should be sorted on return")
+	}
+}
+
+func TestPercentileIncome(t *testing.T) {
+	knownLow := 2942.0
+	knownHigh := 42978.0
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc := NewRetCalc_from_json(JsonObj)
+	dudSim := make([]float64, rc.Years, rc.Years)
+	detSim := make([]float64, rc.Years, rc.Years)
+	for i := range dudSim {
+		detSim[i] = 0.07
+		dudSim[i] = 0.0
+	}
+	for i := 0; i < rc.N; i++ {
+		if i%2 == 0 {
+			rc.SetSim(i, dudSim)
+		} else {
+			rc.SetSim(i, detSim)
+		}
+	}
+	if math.Abs(rc.PercentileIncome(0.25)-knownLow) > INT_THRESHOLD {
+		t.Errorf("PercentileIncome should match known value")
+	}
+
+	if math.Abs(rc.PercentileIncome(0.75)-knownHigh) > INT_THRESHOLD {
+		t.Errorf("PercentileIncome should match known value")
+	}
+
 }
