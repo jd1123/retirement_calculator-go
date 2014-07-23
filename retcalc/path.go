@@ -4,10 +4,10 @@ package retcalc
 
 import (
 	"fmt"
-	"math"
 	"time"
 )
 
+// YearlyEntry struct for looking into a path
 type YearlyEntry struct {
 	Age                                              int
 	Year                                             time.Time
@@ -51,12 +51,15 @@ func (p Path) Final_balance() float64 {
 	return p.Yearly_entries[l].EOY_taxable_balance + p.Yearly_entries[l].EOY_non_taxable_balance
 }
 
+/*
 // Returns the factors and the sum of factors
 // to compute income from a final balance
 // NOTE: I think this should be renamed IncomeFactors, and
 // also think it probably should be elsewhere. It is not reusing
 // code effectively due to its location in path.go
 // Going to move it to a method of retcalc
+
+// NOTES above done - here for reference
 func (p Path) Factors() (float64, []float64) {
 	factors := make([]float64, len(p.Sim), len(p.Sim))
 	s_factors := 0.0
@@ -85,8 +88,10 @@ func (p Path) Factors() (float64, []float64) {
 
 	return s, factors
 }
+*/
 
 // Implement the sort interface on a group of Paths
+// FIXME: how to sort?!
 type PathGroup []Path
 
 func (p PathGroup) Len() int {

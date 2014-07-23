@@ -59,7 +59,7 @@ func (r RetCalc) RunIncomes() []float64 {
 				sum_t += r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
 			}
 		}
-		f, _ := r.All_paths[i].Factors()
+		f, _ := r.IncomeFactors(i)
 		incomes[i] = (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
 	}
 	sort.Float64s(incomes)
@@ -162,6 +162,7 @@ func NewRetCalc_from_json(json_obj []byte) RetCalc {
 	for i := range r.sims {
 		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
 	}
+	r.All_paths = r.RunAllPaths()
 
 	return r
 }
@@ -192,31 +193,5 @@ func NewRetCalc() RetCalc {
 	}
 	sort.Sort(r.All_paths)
 
-	return r
-}
-
-// Dumbed Down version of constructor
-func NewRetCalc_b() RetCalc {
-	r := RetCalc{}
-
-	r.N = 20000
-	r.Age = 22
-	r.Retirement_age = 65
-	r.Terminal_age = 90
-	r.Years = r.Terminal_age - r.Age + 1
-	r.Effective_tax_rate = 0.30
-	r.Returns_tax_rate = 0.30
-	r.Non_Taxable_contribution = 17500
-	r.Taxable_contribution = 0
-	r.Non_Taxable_balance = 0
-	r.Yearly_retirement_expenses = float64(60000)
-	r.Taxable_balance = 0.0
-	r.Asset_volatility = 0.15
-	r.Expected_rate_of_return = 0.07
-	r.Inflation_rate = 0.035
-	r.sims = make([]Sim, r.N, r.N)
-	for i := range r.sims {
-		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
-	}
 	return r
 }

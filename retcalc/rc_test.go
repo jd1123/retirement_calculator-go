@@ -9,8 +9,15 @@ package retcalc
 import (
 	"fmt"
 	"math"
+	"sort"
 	"testing"
 )
+
+// Thresholds for testing floating point and integer results
+// against known values - ints resulting from a cast
+// FIXME: implement these
+const FP_THRESHOLD = 0.1
+const INT_THRESHOLD = 250
 
 // Testing the json constructor
 func TestNewRetCalcJSon(t *testing.T) {
@@ -20,7 +27,6 @@ func TestNewRetCalcJSon(t *testing.T) {
 					"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 
 	rc := NewRetCalc_from_json(JsonObj)
-	rc.All_paths = rc.RunAllPaths()
 	if rc.Age != 22 && rc.Retirement_age != 65 && rc.Terminal_age != 90 && rc.Effective_tax_rate != 0.3 && rc.N != 20000 {
 		t.Errorf("json did not initialize the retcalc object correctly: values do not match known values")
 	}
@@ -34,11 +40,44 @@ func TestNewRetCalcJSon(t *testing.T) {
 	if len(rc.sims[0]) != rc.Years {
 		t.Errorf("RetCalc.sims[i] does not have the correct length")
 	}
+	if rc.sims == nil {
+		t.Errorf("Retcalc.sims not initialized")
+	}
+	if rc.IncomeOnPath(1) < 0.0 {
+		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalc_from_json()")
+	}
+
+}
+
+func TestNewRetCalcJSon_withIncompleteInput(t *testing.T) {
+	// Set up json byte array
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+					"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0}`)
+
+	rc := NewRetCalc_from_json(JsonObj)
+	if rc.Age != 22 && rc.Retirement_age != 65 && rc.Terminal_age != 90 && rc.Effective_tax_rate != 0.3 && rc.N != 20000 {
+		t.Errorf("json did not initialize the retcalc object correctly: values do not match known values")
+	}
+	if rc.Years != rc.Terminal_age-rc.Age+1 {
+		t.Errorf("RetCalc.Years did not intitialize correctly: Years did not computer correctly")
+	}
+
+	if len(rc.sims) != rc.N {
+		t.Errorf("RetCalc.sims does not have the correct length")
+	}
+	if len(rc.sims[0]) != rc.Years {
+		t.Errorf("RetCalc.sims[i] does not have the correct length")
+	}
+	if rc.sims == nil {
+		t.Errorf("Retcalc.sims not initialized")
+	}
+	if rc.IncomeOnPath(1) < 0.0 {
+		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalc_from_json()")
+	}
 
 }
 
 // Test the components of income calculation
-
 func TestGrowthFactors(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
@@ -76,35 +115,7 @@ func TestGrowthFactors(t *testing.T) {
 	}
 }
 
-// Not yet implemented - test will fail uncomment when implemented
-/*
-func TestInflationFactors(t *testing.T) {
-	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000,
-						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0,
-						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	r := NewRetCalc_from_json(JsonObj)
-	r.All_paths = r.RunAllPaths()
-	r.sims[0] = make([]float64, r.Years, r.Years)
-	for i := range r.sims[0] {
-		r.sims[0][i] = 0.07
-	}
-	knownInflationFactors := make([]float64, len(r.sims[0]), len(r.sims[0]))
-	infationFactors := r.InflationFactors()
-
-	factorsGood := true
-	for i := range inflationFactors {
-		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > 0.1 {
-			factorsGood = false
-		}
-	}
-
-	if !factorsGood {
-		t.Errorf("Inflation Factors did not compute correctly")
-	}
-
-}
-*/
-
+// Testing RetCalc.InflationFactors() against known values
 func TestInflationFactors(t *testing.T) {
 	knownInflationFactors := []float64{1.035, 1.071225, 1.108717875, 1.147523000625, 1.18768630564687, 1.22925532634452, 1.27227926276657, 1.3168090369634,
 		1.36289735325712, 1.41059876062112, 1.45996971724286, 1.51106865734636, 1.56395606035348, 1.61869452246585, 1.67534883075216,
@@ -129,7 +140,7 @@ func TestInflationFactors(t *testing.T) {
 	r.All_paths = r.RunAllPaths()
 	inflationFactors := r.InflationFactors()
 	for i := range inflationFactors {
-		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > 1 {
+		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > FP_THRESHOLD {
 			t.Errorf("InflationFactors() does not produce known factors")
 		}
 	}
@@ -157,14 +168,14 @@ func TestIncomeFactors(t *testing.T) {
 		14.9733306360167, 14.4835487927825, 14.0097878509625, 13.5515237623796, 13.1082496206195, 12.6794751003189, 12.2647259147944,
 		11.8635432914133, 11.4754834641241, 11.1001171825873, 10.7370292373625}
 
-	if math.Abs(knownSum-sum) > 0.1 {
+	if math.Abs(knownSum-sum) > FP_THRESHOLD {
 		fmt.Printf("sum: %f  knownSum: %f\n", sum, knownSum) //Comment this out after testing
 		t.Errorf("Income factor sum from path.Factors() not computing correctly for known values")
 	}
 
 	factorsGood := true
 	for i := range factors {
-		if math.Abs(factors[i]-knownFactors[i]) > 0.1 {
+		if math.Abs(factors[i]-knownFactors[i]) > FP_THRESHOLD {
 			factorsGood = false
 			fmt.Printf("factors: %f  knownFactors: %f sim: %f\n", factors[i], knownFactors[i], pth.Sim[i]) //Comment this after testing
 		}
@@ -188,11 +199,12 @@ func TestRunIncome(t *testing.T) {
 	}
 	rc.All_paths = rc.RunAllPaths()
 	knownIncome := 42978.0
-	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > 250 {
+	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > INT_THRESHOLD {
 		t.Errorf("IncomeOnPath() does not match known value")
 	}
 }
 
+// Test SetSim Methods
 func TestSetSim(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
@@ -207,5 +219,29 @@ func TestSetSim(t *testing.T) {
 		if rc.sims[0][i] != s[i] {
 			t.Errorf("RetCalc.sim does not set correctly with RetCalc.SetSim()")
 		}
+	}
+}
+
+func TestRunIncomes(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc := NewRetCalc_from_json(JsonObj)
+	runIncomes := rc.RunIncomes()
+	sort.Float64s(runIncomes)
+	incomePerRun := make([]float64, rc.N, rc.N)
+	for i := range incomePerRun {
+		incomePerRun[i] = rc.IncomeOnPath(i)
+	}
+	sort.Float64s(incomePerRun)
+	incomesOk := true
+	for i := range incomePerRun {
+		if incomePerRun[i] != runIncomes[i] {
+			incomesOk = false
+			fmt.Printf("RunIncomes: %f, IncomeOnPath: %f\n", runIncomes[i], incomePerRun[i])
+		}
+	}
+	if !incomesOk {
+		t.Errorf("Incomes do not calculate correctly for RunIncomes()")
 	}
 }

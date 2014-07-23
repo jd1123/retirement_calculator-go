@@ -22,7 +22,7 @@ func RegisterHandlers() {
 	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
-	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
+	//r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
 	http.Handle(InputPrefix, r)
 	http.Handle(AllDataPrefix, r)
 	http.Handle(IncomesPrefix, r)
@@ -59,10 +59,14 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	body, _ := ioutil.ReadAll(r.Body)
 	fmt.Println(string(body))
 
+	// FIXME: This isnt working - don't know why
+	// test passes
 	rc := retcalc.NewRetCalc_from_json(body)
 
-	//Take this out when done with testing
+	// Take this out when done with testing
+	fmt.Println("Retcalc Object")
 	fmt.Println(rc)
+	// Take this out when done with testing
 
 	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))
 }
@@ -72,6 +76,7 @@ func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(rc)
 }
 
+/*
 func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
 	req := retcalc.RetCalcWebInput{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -79,7 +84,7 @@ func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
 	}
 	return json.NewEncoder(w).Encode(req)
 }
-
+*/
 func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
 	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))

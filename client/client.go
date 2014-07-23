@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"encoding/json"
@@ -33,11 +33,10 @@ func main() {
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 	rc := retcalc.NewRetCalc_from_json(JsonObj)
 
-	s := make([]float64, rc.Years, rc.Years)
-	for i := range s {
-		s[i] = 0.07
+	inf := rc.InflationFactors()
+	for i := 0; i < rc.Years; i++ {
+		fmt.Printf("Year %d - InflationFactor: %f\n", i, inf[i])
 	}
-	rc.SetSim(0, s)
-	rc.All_paths = rc.RunAllPaths()
-	fmt.Println(rc.IncomeOnPath(0))
+	fmt.Printf("Years - %d\n", rc.Years)
+	fmt.Println(rc.IncomeOnPath(1))
 }
