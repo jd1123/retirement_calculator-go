@@ -19,7 +19,7 @@ func (s Sim) GrowthFactor(startYear int) float64 {
 
 func (s Sim) GrowthFactorWithTaxes(startYear int, eff_tax float64) float64 {
 	fac := 1.0
-	for i := startYear; i < len(s); i++ {
+	for i := startYear; i < len(s)-1; i++ {
 		fac *= (1 + s[i]*(1-eff_tax))
 	}
 	return fac

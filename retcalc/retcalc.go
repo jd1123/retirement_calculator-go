@@ -69,9 +69,6 @@ func (r RetCalc) RunIncomes() []float64 {
 func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
 	untaxed_total_wealth := r.Non_Taxable_balance * r.sims[pathIndex].GrowthFactor(0)
 	taxed_total_wealth := r.Taxable_balance * r.sims[pathIndex].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
-	//ft, _ := r.All_paths[i].Factors()
-	//fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft,
-	//	(untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
 	sum_t, sum_ut := 0.0, 0.0
 	for j := range r.sims[pathIndex] {
 		if j+r.Age < r.Retirement_age {
@@ -139,10 +136,27 @@ func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 	}
 
 	return sumFactors, incomeFactors
-
 }
 
-func (r RetCalc) GrowthFactors(startYear, simIdx int) float64 {
+func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
+	sim := r.sims[0]
+	l := len(sim)
+	incomeFactors := make([]float64, l, l)
+	inflationFactors := r.InflationFactors()
+	sumFactors := 0.0
+	for i := range incomeFactors {
+		if r.Age+i > r.Retirement_age {
+			incomeFactors[i] = r.sims[simIdx].GrowthFactorWithTaxes(i, r.Effective_tax_rate) * inflationFactors[i]
+			sumFactors += incomeFactors[i]
+		} else {
+			incomeFactors[i] = 0.0
+		}
+	}
+
+	return sumFactors, incomeFactors
+}
+
+func (r RetCalc) GrowthFactor(startYear, simIdx int) float64 {
 	return r.sims[simIdx].GrowthFactor(startYear)
 }
 
@@ -150,7 +164,7 @@ func (r RetCalc) GrowthFactors(startYear, simIdx int) float64 {
 
 // This constructor will populate a RetCalc from
 // JSON input from the web ----- NEEDS work
-func NewRetCalc_from_json(json_obj []byte) RetCalc {
+func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
 	if err != nil {

@@ -15,7 +15,6 @@ import (
 
 // Thresholds for testing floating point and integer results
 // against known values - ints resulting from a cast
-// FIXME: implement these
 const FP_THRESHOLD = 0.1
 const INT_THRESHOLD = 250
 
@@ -26,7 +25,7 @@ func TestNewRetCalcJSon(t *testing.T) {
 					"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 					"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 	if rc.Age != 22 && rc.Retirement_age != 65 && rc.Terminal_age != 90 && rc.Effective_tax_rate != 0.3 && rc.N != 20000 {
 		t.Errorf("json did not initialize the retcalc object correctly: values do not match known values")
 	}
@@ -44,7 +43,7 @@ func TestNewRetCalcJSon(t *testing.T) {
 		t.Errorf("Retcalc.sims not initialized")
 	}
 	if rc.IncomeOnPath(1) < 0.0 {
-		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalc_from_json()")
+		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalcFromJSON()")
 	}
 
 }
@@ -54,7 +53,7 @@ func TestNewRetCalcJSon_withIncompleteInput(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 					"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0}`)
 
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 	if rc.Age != 22 && rc.Retirement_age != 65 && rc.Terminal_age != 90 && rc.Effective_tax_rate != 0.3 && rc.N != 20000 {
 		t.Errorf("json did not initialize the retcalc object correctly: values do not match known values")
 	}
@@ -72,7 +71,7 @@ func TestNewRetCalcJSon_withIncompleteInput(t *testing.T) {
 		t.Errorf("Retcalc.sims not initialized")
 	}
 	if rc.IncomeOnPath(1) < 0.0 {
-		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalc_from_json()")
+		t.Errorf("Retcalc.IncomeOnPath() does not work for newly init NewRetCalcFromJSON()")
 	}
 
 }
@@ -82,8 +81,7 @@ func TestGrowthFactors(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	r := NewRetCalc_from_json(JsonObj)
-	r.All_paths = r.RunAllPaths()
+	r := NewRetCalcFromJSON(JsonObj)
 	r.sims[0] = make([]float64, r.Years, r.Years)
 	for i := range r.sims[0] {
 		r.sims[0][i] = 0.07
@@ -115,6 +113,54 @@ func TestGrowthFactors(t *testing.T) {
 	}
 }
 
+func TestGrowthFactorsWithTaxes(t *testing.T) {
+	knownGrowthFactors := []float64{25.8662337047586, 24.6579920922389, 23.506188839122, 22.4081876445395, 21.3614753522779, 20.363656198549, 19.4124463284547,
+		18.5056685685936, 17.6412474438452, 16.8172044269259, 16.0316534098435, 15.2827963868861, 14.5689193392623, 13.8883883119755,
+		13.2396456739518, 12.6212065528616, 12.0316554364744, 11.4696429327687, 10.933882681381, 10.4231484093242, 9.93627112423656,
+		9.47213643873838, 9.02968201976967, 8.60789515707309, 8.20581044525556, 7.82250757412351, 7.45710922223404, 7.10877904884084,
+		6.77671977963855, 6.46017138192427, 6.1584093249993, 5.87074292182965, 5.59651374816935, 5.33509413552846, 5.08588573453618,
+		4.84831814541104, 4.62184761240328, 4.40595577922143, 4.20014850259431, 4.00395472125292, 3.81692537774349, 3.6386323906039,
+		3.4686676745509, 3.30664220643556, 3.15218513482894, 3.00494293120014, 2.8645785807437, 2.73077081100448, 2.6032133565343,
+		2.48161425789733, 2.36569519341976, 2.2551908421542, 2.14984827660077, 2.04942638379482, 1.95369531343643, 1.86243595179832,
+		1.77543942020812, 1.69250659695722, 1.61344766154167, 1.53808166019225, 1.466236091699, 1.39774651258246, 1.33245616070778,
+		1.27021559648025, 1.210882360801, 1.154320649, 1.100401, 1.049, 1}
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	r := NewRetCalcFromJSON(JsonObj)
+	r.sims[0] = make([]float64, r.Years, r.Years)
+	for i := range r.sims[0] {
+		r.sims[0][i] = 0.07
+	}
+
+	gfactors := make([]float64, len(r.sims[0]), len(r.sims[0]))
+	for i := range r.sims[0] {
+		gfactors[i] = r.sims[0].GrowthFactorWithTaxes(i, r.Effective_tax_rate)
+	}
+	factorsGood := true
+	for i := range gfactors {
+		if math.Abs(gfactors[i]-knownGrowthFactors[i]) > FP_THRESHOLD {
+			factorsGood = false
+			fmt.Printf("gfactor: %f    knownFactor: %f\n", gfactors[i], knownGrowthFactors[i])
+		}
+	}
+	if !factorsGood {
+		t.Errorf("Growth Factor calculations incorrect")
+	}
+}
+
+func TestRetCalcGrowthFactors(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	r := NewRetCalcFromJSON(JsonObj)
+	retCalcFactor := r.GrowthFactor(0, 0)
+	simFactor := r.sims[0].GrowthFactor(0)
+	if retCalcFactor != simFactor {
+		t.Errorf("RetCalc.GrowthFactors() does not return the same result as RetCalc.sim[0].GrowthFactor()")
+	}
+}
+
 // Testing RetCalc.InflationFactors() against known values
 func TestInflationFactors(t *testing.T) {
 	knownInflationFactors := []float64{1.035, 1.071225, 1.108717875, 1.147523000625, 1.18768630564687, 1.22925532634452, 1.27227926276657, 1.3168090369634,
@@ -132,12 +178,11 @@ func TestInflationFactors(t *testing.T) {
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 
-	r := NewRetCalc_from_json(JsonObj)
+	r := NewRetCalcFromJSON(JsonObj)
 	r.sims[0] = make([]float64, r.Years, r.Years)
 	for i := range r.sims[0] {
 		r.sims[0][i] = 0.07
 	}
-	r.All_paths = r.RunAllPaths()
 	inflationFactors := r.InflationFactors()
 	for i := range inflationFactors {
 		if math.Abs(inflationFactors[i]-knownInflationFactors[i]) > FP_THRESHOLD {
@@ -152,12 +197,11 @@ func TestIncomeFactors(t *testing.T) {
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 
-	r := NewRetCalc_from_json(JsonObj)
+	r := NewRetCalcFromJSON(JsonObj)
 	r.sims[0] = make([]float64, r.Years, r.Years)
 	for i := range r.sims[0] {
 		r.sims[0][i] = 0.07
 	}
-	r.All_paths = r.RunAllPaths()
 
 	pth := RunPath(r, r.sims[0])
 	sum, factors := r.IncomeFactors(0)
@@ -185,19 +229,56 @@ func TestIncomeFactors(t *testing.T) {
 	}
 }
 
+func TestIncomeFactorsWithTaxes(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+
+	r := NewRetCalcFromJSON(JsonObj)
+	r.sims[0] = make([]float64, r.Years, r.Years)
+	for i := range r.sims[0] {
+		r.sims[0][i] = 0.07
+	}
+
+	pth := RunPath(r, r.sims[0])
+	sum, factors := r.IncomeFactorsWithTaxes(0)
+	knownSum := 316.87
+	knownFactors := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 14.8227047241573, 14.624880256914, 14.4296959636854, 14.2371166085934, 14.0471074260192,
+		13.8596341143278, 13.6746628296752, 13.4921601798988, 13.3120932184893, 13.1344294386429, 12.9591367673931,
+		12.7861835598207, 12.6155385933407, 12.4471710620664, 12.2810505712476, 12.1171471317838, 11.9554311548105,
+		11.7958734463574, 11.6384452020781, 11.4831180020503, 11.3298638056455, 11.1786549464662, 11.0294641273523,
+		10.8822644154524, 10.7370292373625}
+
+	if math.Abs(knownSum-sum) > FP_THRESHOLD {
+		fmt.Printf("sum: %f  knownSum: %f\n", sum, knownSum) //Comment this out after testing
+		t.Errorf("Income factor sum from path.Factors() not computing correctly for known values")
+	}
+
+	factorsGood := true
+	for i := range factors {
+		if math.Abs(factors[i]-knownFactors[i]) > FP_THRESHOLD {
+			factorsGood = false
+			fmt.Printf("factors: %f  knownFactors: %f sim: %f\n", factors[i], knownFactors[i], pth.Sim[i]) //Comment this after testing
+		}
+	}
+	if !factorsGood {
+		t.Errorf("Factors returned from path.Factors() do not match known factors")
+	}
+}
+
 // After testing the components that go into the calculations, test that incomes
 // are computed correctly
 func TestRunIncome(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 
 	rc.sims[0] = make([]float64, rc.Years, rc.Years)
 	for i := range rc.sims[0] {
 		rc.sims[0][i] = 0.07
 	}
-	rc.All_paths = rc.RunAllPaths()
 	knownIncome := 42978.0
 	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > INT_THRESHOLD {
 		t.Errorf("IncomeOnPath() does not match known value")
@@ -209,7 +290,7 @@ func TestSetSim(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 	s := make([]float64, len(rc.sims[0]), len(rc.sims[0]))
 	for i := range s {
 		s[i] = 0.07
@@ -226,7 +307,7 @@ func TestRunIncomes(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 	runIncomes := rc.RunIncomes()
 	sort.Float64s(runIncomes)
 	incomePerRun := make([]float64, rc.N, rc.N)
@@ -255,7 +336,7 @@ func TestPercentileIncome(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
-	rc := NewRetCalc_from_json(JsonObj)
+	rc := NewRetCalcFromJSON(JsonObj)
 	dudSim := make([]float64, rc.Years, rc.Years)
 	detSim := make([]float64, rc.Years, rc.Years)
 	for i := range dudSim {
