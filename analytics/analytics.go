@@ -4,7 +4,22 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 )
+
+func FloatToString(input_num float64) string {
+	// to convert a float number to a string
+	return strconv.FormatFloat(input_num, 'f', 6, 64)
+}
+
+type Bin struct {
+	Max, Min float64
+	Weight   int
+}
+
+type Histo struct {
+	Bins []Bin
+}
 
 func MaxF64(a []float64) float64 {
 	if len(a) == 0 {
@@ -43,7 +58,7 @@ func AvgF64(a []float64) float64 {
 	return avg / float64(len(a))
 }
 
-func HistoCumulative(a []float64, n_bins int) []byte {
+func HistoCumulative(a []float64, n_bins int) Histo {
 	max := MaxF64(a)
 	min := MinF64(a)
 	l := len(a)
@@ -64,21 +79,40 @@ func HistoCumulative(a []float64, n_bins int) []byte {
 		}
 	}
 
-	// Print Out Map
+	var h Histo
+	h.Bins = make([]Bin, n_bins, n_bins)
+
 	var keys []float64
 	for k := range cdf {
 		keys = append(keys, k)
 	}
+
 	sort.Float64s(keys)
+	i := 0
 	for _, k := range keys {
-		fmt.Println("Key: ", k, " Value: ", cdf[k])
+		h.Bins[i].Max = k
+		h.Bins[i].Min = k - binStep
+		h.Bins[i].Weight = cdf[k]
+		fmt.Println("Key: ", k, " Bins[i].Max: ", h.Bins[i].Max)
+		i++
 	}
-	// END Print Out Map
+
+	/*
+		// Print Out Map
+		for k := range cdf {
+			keys = append(keys, k)
+		}
+		sort.Float64s(keys)
+		for _, k := range keys {
+			//fmt.Println("Key: ", k, " Value: ", cdf[k])
+		}
+		// END Print Out Map
+	*/
 
 	fmt.Println("HistoCumulative() analytics:")
 	fmt.Printf("Max: %f\n", max)
 	fmt.Printf("Min: %f\n", min)
 	fmt.Printf("Len: %d\n", l)
 
-	return []byte{0}
+	return h
 }

@@ -71,7 +71,8 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	fmt.Printf("Avg: %f\n", analytics.AvgF64(incs))
 	myRetCalc.ShowRetCalc()
 
-	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
+	//return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
+	return json.NewEncoder(w).Encode(analytics.HistoCumulative(myRetCalc.RunIncomes(), 150))
 }
 
 func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
