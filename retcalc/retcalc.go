@@ -22,7 +22,7 @@ type RetCalc struct {
 	Non_Taxable_contribution, Taxable_contribution float64
 	Non_Taxable_balance, Taxable_balance           float64
 	Yearly_retirement_expenses                     float64
-	Asset_volatility, Expected_rate_of_return      float64
+	PortfolioSelection                             Portfolio
 	Inflation_rate                                 float64
 	All_paths                                      PathGroup
 }
@@ -60,7 +60,8 @@ func (r RetCalc) RunIncomes() []float64 {
 			}
 		}
 		f, _ := r.IncomeFactors(i)
-		incomes[i] = (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
+		ft, _ := r.IncomeFactorsWithTaxes(i)
+		incomes[i] = (taxed_total_wealth/ft + untaxed_total_wealth*(1-r.Effective_tax_rate)/f)
 	}
 	sort.Float64s(incomes)
 	return incomes
@@ -175,16 +176,13 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	if r.N == 0 {
 		r.N = 10000
 	}
-	if r.Asset_volatility == 0 {
-		r.Asset_volatility = 0.15
-	}
-	if r.Expected_rate_of_return == 0 {
-		r.Expected_rate_of_return = 0.07
+	if r.PortfolioSelection == BLANKPORTFOLIO {
+		r.PortfolioSelection = HIGHRISKPORTFOLIO
 	}
 
 	r.sims = make([]Sim, r.N, r.N)
 	for i := range r.sims {
-		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.sims[i] = Simulation(r.PortfolioSelection, r.Years)
 	}
 	r.All_paths = r.RunAllPaths()
 
@@ -206,13 +204,12 @@ func NewRetCalc() RetCalc {
 	r.Non_Taxable_balance = 0
 	r.Yearly_retirement_expenses = float64(100000)
 	r.Taxable_balance = 0.0
-	r.Asset_volatility = 0.15
-	r.Expected_rate_of_return = 0.07
+	r.PortfolioSelection = HIGHRISKPORTFOLIO
 	r.Inflation_rate = 0.035
 	r.sims = make([]Sim, r.N, r.N)
 	r.All_paths = make([]Path, r.N, r.N)
 	for i := range r.sims {
-		r.sims[i] = Simulation(r.Expected_rate_of_return, r.Asset_volatility, r.Years)
+		r.sims[i] = Simulation(r.PortfolioSelection, r.Years)
 		r.All_paths[i] = RunPath(r, r.sims[i])
 	}
 	sort.Sort(r.All_paths)

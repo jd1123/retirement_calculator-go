@@ -384,3 +384,38 @@ func TestRunIncomesAnalytics(t *testing.T) {
 	fmt.Printf("Min %f\n", min)
 	fmt.Printf("Avg: %f\n", avg)
 }
+
+func TestPathFinalBalance(t *testing.T) {
+	knownFinalBalance := 25276177.0
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc := NewRetCalcFromJSON(JsonObj)
+	detSim := make([]float64, rc.Years, rc.Years)
+	for i := range detSim {
+		detSim[i] = 0.07
+	}
+	rc.SetSim(0, detSim)
+	rc.All_paths[0] = RunPath(rc, rc.sims[0])
+	fb := rc.All_paths[0].Final_balance()
+	if math.Abs(knownFinalBalance-fb) > INT_THRESHOLD {
+		t.Errorf("Path.FinalBalance() does not match known value")
+		fmt.Printf("Path.FinalBalance(): %f -- Known Final Balance: %f", fb, knownFinalBalance)
+		rc.All_paths[0].Print_path()
+	}
+}
+
+func TestPathEndBalances(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc := NewRetCalcFromJSON(JsonObj)
+	eb := rc.All_paths.End_balances()
+	for i := 0; i < rc.N; i++ {
+		if math.Abs(rc.All_paths[i].Final_balance()-eb[i]) > INT_THRESHOLD {
+			t.Errorf("Path.FinalBalance() does not match known value")
+			fmt.Printf("Path.FinalBalance(): %f -- Known Final Balance: %f", rc.All_paths[i].Final_balance(), eb[i])
+			rc.All_paths[0].Print_path()
+		}
+	}
+}
