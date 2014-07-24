@@ -6,6 +6,7 @@ package retcalc
 
 import (
 	"fmt"
+	"retirement_calculator-go/analytics"
 	"time"
 
 	"code.google.com/p/plotinum/plot"
@@ -14,6 +15,11 @@ import (
 
 // Builds a histogram from a []float64 slice :)
 func HistoFromSlice(slice []float64) *plotter.Histogram {
+	fmt.Println("HistoFromSlice() call - slice analytics:")
+	fmt.Printf("Max: %f\n", analytics.MaxF64(slice))
+	fmt.Printf("Min: %f\n", analytics.MinF64(slice))
+	fmt.Printf("Avg: %f\n", analytics.AvgF64(slice))
+
 	v := make(plotter.Values, len(slice))
 	for i := range v {
 		v[i] = slice[i]

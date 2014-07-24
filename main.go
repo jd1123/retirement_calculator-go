@@ -26,11 +26,15 @@ import (
 	"fmt"
 	"net/http"
 	"retirement_calculator-go/server"
+	"strconv"
 )
 
+const listenPort = 8081
+
 func main() {
+	listenStr := ":" + strconv.Itoa(listenPort)
 	server.RegisterHandlers()
 	http.Handle("/", http.FileServer(http.Dir("./static")))
-	fmt.Println("RetCalc server on: Listening on port 8080")
-	http.ListenAndServe(":8080", nil)
+	fmt.Printf("RetCalc server on: Listening on port %d\n", listenPort)
+	http.ListenAndServe(listenStr, nil)
 }

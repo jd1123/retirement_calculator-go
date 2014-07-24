@@ -56,12 +56,12 @@ func error_handler(f func(w http.ResponseWriter, r *http.Request) error) http.Ha
 func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
-	fmt.Println(string(body))
 
-	// FIXME: This isnt working - don't know why
-	// test passes
-	//rc := retcalc.NewRetCalcFromJSON(body)
 	myRetCalc := retcalc.NewRetCalcFromJSON(body)
+
+	fmt.Println()
+	fmt.Println("POST request recieved - RecalcFromWebInput()")
+	fmt.Printf("Recived: %s\n", string(body))
 
 	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
 }
