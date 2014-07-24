@@ -54,21 +54,16 @@ func error_handler(f func(w http.ResponseWriter, r *http.Request) error) http.Ha
 }
 
 func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
-
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
 	fmt.Println(string(body))
 
 	// FIXME: This isnt working - don't know why
 	// test passes
-	rc := retcalc.NewRetCalc_from_json(body)
+	//rc := retcalc.NewRetCalcFromJSON(body)
+	myRetCalc := retcalc.NewRetCalcFromJSON(body)
 
-	// Take this out when done with testing
-	fmt.Println("Retcalc Object")
-	fmt.Println(rc)
-	// Take this out when done with testing
-
-	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))
+	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
 }
 
 func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {

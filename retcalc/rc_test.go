@@ -269,7 +269,7 @@ func TestIncomeFactorsWithTaxes(t *testing.T) {
 
 // After testing the components that go into the calculations, test that incomes
 // are computed correctly
-func TestRunIncome(t *testing.T) {
+func TestIncomeOnPath(t *testing.T) {
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
@@ -358,4 +358,29 @@ func TestPercentileIncome(t *testing.T) {
 		t.Errorf("PercentileIncome should match known value")
 	}
 
+}
+
+func TestRunIncomesAnalytics(t *testing.T) {
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc := NewRetCalcFromJSON(JsonObj)
+	runIncomes := rc.RunIncomes()
+	sort.Float64s(runIncomes)
+	min := 100000.0
+	max := 0.0
+	avg := 0.0
+	for i := range runIncomes {
+		avg += runIncomes[i]
+		if runIncomes[i] > max {
+			max = runIncomes[i]
+		}
+		if runIncomes[i] < min {
+			min = runIncomes[i]
+		}
+	}
+	avg = avg / float64(len(runIncomes))
+	fmt.Printf("Max: %f\n", max)
+	fmt.Printf("Min %f\n", min)
+	fmt.Printf("Avg: %f\n", avg)
 }

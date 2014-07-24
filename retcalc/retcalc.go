@@ -168,9 +168,19 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
 	if err != nil {
+		fmt.Println("ERROR in NewRetCalcFromJSON()")
 		fmt.Println(err)
 	}
 	r.Years = r.Terminal_age - r.Age + 1
+	if r.N == 0 {
+		r.N = 10000
+	}
+	if r.Asset_volatility == 0 {
+		r.Asset_volatility = 0.15
+	}
+	if r.Expected_rate_of_return == 0 {
+		r.Expected_rate_of_return = 0.07
+	}
 
 	r.sims = make([]Sim, r.N, r.N)
 	for i := range r.sims {
