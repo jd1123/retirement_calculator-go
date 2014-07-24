@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"retirement_calculator-go/analytics"
 	"retirement_calculator-go/retcalc"
 
 	"github.com/gorilla/mux"
@@ -62,6 +63,13 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println()
 	fmt.Println("POST request recieved - RecalcFromWebInput()")
 	fmt.Printf("Recived: %s\n", string(body))
+	fmt.Println()
+	incs := myRetCalc.RunIncomes()
+	fmt.Println("RunIncomes() analystics:")
+	fmt.Printf("Max: %f\n", analytics.MaxF64(incs))
+	fmt.Printf("Min: %f\n", analytics.MinF64(incs))
+	fmt.Printf("Avg: %f\n", analytics.AvgF64(incs))
+	myRetCalc.ShowRetCalc()
 
 	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
 }

@@ -29,6 +29,18 @@ type RetCalc struct {
 
 // METHODS
 
+func (r RetCalc) ShowRetCalc() {
+	fmt.Println("----Showing you the RetCalc----")
+	fmt.Printf("Age: %d\n", r.Age)
+	fmt.Printf("Retirement Age: %d\n", r.Retirement_age)
+	fmt.Printf("Terminal Age: %d\n", r.Terminal_age)
+	fmt.Printf("Years: %d\n", r.Years)
+	fmt.Printf("Non_Taxable_contribution %f\n", r.Non_Taxable_contribution)
+	fmt.Printf("Taxable_contribution %f\n", r.Taxable_contribution)
+	fmt.Printf("Inflation_rate %f\n", r.Inflation_rate)
+	fmt.Println()
+}
+
 // Runs all the paths - dont do this in the constructor
 // because the data will be lost when passing a smaller,
 // client side object that is portable
@@ -80,7 +92,8 @@ func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
 		}
 	}
 	f, _ := r.IncomeFactors(pathIndex)
-	income := (taxed_total_wealth + untaxed_total_wealth*(1-r.Effective_tax_rate)) / f
+	ft, _ := r.IncomeFactorsWithTaxes(pathIndex)
+	income := (taxed_total_wealth/ft + untaxed_total_wealth*(1-r.Effective_tax_rate)/f)
 	return income
 }
 
@@ -111,6 +124,7 @@ func (r RetCalc) SetSim(ix int, newSim []float64) {
 	for i := range r.sims[ix] {
 		r.sims[ix][i] = newSim[i]
 	}
+	r.All_paths[ix] = RunPath(r, r.sims[ix])
 }
 
 func (r RetCalc) InflationFactors() []float64 {
@@ -174,10 +188,13 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	}
 	r.Years = r.Terminal_age - r.Age + 1
 	if r.N == 0 {
-		r.N = 10000
+		r.N = 25000
 	}
 	if r.PortfolioSelection == BLANKPORTFOLIO {
 		r.PortfolioSelection = HIGHRISKPORTFOLIO
+	}
+	if r.Inflation_rate == 0 {
+		r.Inflation_rate = 0.035
 	}
 
 	r.sims = make([]Sim, r.N, r.N)

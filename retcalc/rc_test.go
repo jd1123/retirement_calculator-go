@@ -270,18 +270,54 @@ func TestIncomeFactorsWithTaxes(t *testing.T) {
 // After testing the components that go into the calculations, test that incomes
 // are computed correctly
 func TestIncomeOnPath(t *testing.T) {
-	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 200, 
 						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 	rc := NewRetCalcFromJSON(JsonObj)
 
-	rc.sims[0] = make([]float64, rc.Years, rc.Years)
-	for i := range rc.sims[0] {
-		rc.sims[0][i] = 0.07
+	knownSim := make([]float64, rc.Years, rc.Years)
+	for i := range knownSim {
+		knownSim[i] = 0.07
 	}
+
+	rc.SetSim(0, knownSim)
+
 	knownIncome := 42978.0
 	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > INT_THRESHOLD {
 		t.Errorf("IncomeOnPath() does not match known value")
+		fmt.Printf("IncomeOnPath(): %f --- knownIncome: %f\n", rc.IncomeOnPath(0), knownIncome)
+	}
+	knownIncomeTaxed := 26885.0
+	JsonObj = []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 200, 
+						"Non_Taxable_contribution":0, "Taxable_contribution": 17500, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc = NewRetCalcFromJSON(JsonObj)
+	rc.SetSim(0, knownSim)
+	if math.Abs(rc.IncomeOnPath(0)-knownIncomeTaxed) > INT_THRESHOLD {
+		t.Errorf("IncomeOnPath() does not match known value using Taxable Accounts")
+		fmt.Printf("IncomeOnPath(): %f --- knownIncomeTaxed: %f\n", rc.IncomeOnPath(0), knownIncomeTaxed)
+	}
+
+	knownIncome = 16929.0
+	JsonObj = []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 200, 
+						"Non_Taxable_contribution":0, "Taxable_contribution": 0, "Non_Taxable_balance":100000, "Taxable_balance": 0, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc = NewRetCalcFromJSON(JsonObj)
+	rc.SetSim(0, knownSim)
+	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > INT_THRESHOLD {
+		t.Errorf("IncomeOnPath() does not match known value using Non-Taxable starting balance")
+		fmt.Printf("IncomeOnPath(): %f --- knownIncome: %f\n", rc.IncomeOnPath(0), knownIncome)
+	}
+
+	knownIncome = 8363.0
+	JsonObj = []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 200, 
+						"Non_Taxable_contribution":0, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 100000, 
+						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
+	rc = NewRetCalcFromJSON(JsonObj)
+	rc.SetSim(0, knownSim)
+	if math.Abs(rc.IncomeOnPath(0)-knownIncome) > INT_THRESHOLD {
+		t.Errorf("IncomeOnPath() does not match known value using Non-Taxable starting balance")
+		fmt.Printf("IncomeOnPath(): %f --- knownIncome: %f\n", rc.IncomeOnPath(0), knownIncome)
 	}
 }
 
@@ -360,9 +396,10 @@ func TestPercentileIncome(t *testing.T) {
 
 }
 
+/*
 func TestRunIncomesAnalytics(t *testing.T) {
-	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000, 
-						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0, 
+	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20000,
+						"Non_Taxable_contribution":17500, "Taxable_contribution": 0, "Non_Taxable_balance":0, "Taxable_balance": 0,
 						"Yearly_social_security_income":0, "Asset_volatility": 0.15, "Expected_rate_of_return": 0.07, "Inflation_rate":0.035}`)
 	rc := NewRetCalcFromJSON(JsonObj)
 	runIncomes := rc.RunIncomes()
@@ -384,7 +421,7 @@ func TestRunIncomesAnalytics(t *testing.T) {
 	fmt.Printf("Min %f\n", min)
 	fmt.Printf("Avg: %f\n", avg)
 }
-
+*/
 func TestPathFinalBalance(t *testing.T) {
 	knownFinalBalance := 25276177.0
 	JsonObj := []byte(`{"Age":22, "Retirement_age":65, "Terminal_age":90, "Effective_tax_rate":0.3, "Returns_tax_rate":0.3, "N": 20, 
