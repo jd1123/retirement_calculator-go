@@ -14,7 +14,7 @@ func FloatToString(input_num float64) string {
 
 type Bin struct {
 	Max, Min float64
-	Weight   int
+	Weight   float64
 }
 
 type Histo struct {
@@ -59,6 +59,7 @@ func AvgF64(a []float64) float64 {
 }
 
 func HistoCumulative(a []float64, n_bins int) Histo {
+	normalize := true
 	max := MaxF64(a)
 	min := MinF64(a)
 	l := len(a)
@@ -92,7 +93,12 @@ func HistoCumulative(a []float64, n_bins int) Histo {
 	for _, k := range keys {
 		h.Bins[i].Max = k
 		h.Bins[i].Min = k - binStep
-		h.Bins[i].Weight = cdf[k]
+		if normalize {
+			h.Bins[i].Weight = float64(cdf[k]) / float64(l)
+
+		} else {
+			h.Bins[i].Weight = float64(cdf[k])
+		}
 		fmt.Println("Key: ", k, " Bins[i].Max: ", h.Bins[i].Max)
 		i++
 	}

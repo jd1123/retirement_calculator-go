@@ -72,7 +72,7 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	myRetCalc.ShowRetCalc()
 
 	//return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
-	return json.NewEncoder(w).Encode(analytics.HistoCumulative(myRetCalc.RunIncomes(), 150))
+	return json.NewEncoder(w).Encode(analytics.HistoCumulative(myRetCalc.RunIncomes(), 250))
 }
 
 func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
