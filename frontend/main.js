@@ -27,7 +27,7 @@ $(document).ready(function () {
         loading = false;
         var output = beautify(JSON.stringify(data), { indent_size: 2 });
         $('pre#json').text(output);
-        require('./histo')(data);
+        require('./histo')(data["Bins"]);
       };
 
       $.ajax({
