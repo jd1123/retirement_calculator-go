@@ -8,7 +8,7 @@ module.exports = function (data) {
     },
 
     xAxis: {
-      categories: _.map(_.pluck(data['Bins'], 'Max'), function (number) {
+      categories: _.map(_.pluck(data['Bins'], 'Min'), function (number) {
         return parseInt(number);
       }),
       labels: { enabled: false }
