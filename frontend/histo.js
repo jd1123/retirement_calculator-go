@@ -1,6 +1,11 @@
 var _ = require('lodash');
 
-module.exports = function (data) {
+module.exports = function (raw_bins) {
+
+  var bins = _.filter(raw_bins, function (bin) {
+    return bin['Weight'] > 0.001;
+  });
+
   return new Highcharts.Chart({
     chart: {
       renderTo: 'chart',
@@ -8,7 +13,7 @@ module.exports = function (data) {
     },
 
     xAxis: {
-      categories: _.map(_.pluck(data['Bins'], 'Min'), function (number) {
+      categories: _.map(_.pluck(bins, 'Min'), function (number) {
         return parseInt(number);
       }),
       labels: { enabled: false }
@@ -23,7 +28,7 @@ module.exports = function (data) {
     },
 
     series: [{
-      data: _.pluck(data["Bins"], 'Weight')
+      data: _.pluck(bins, 'Weight')
     }]
   })
 };
