@@ -18,14 +18,14 @@ type RetCalc struct {
 	Effective_tax_rate, Returns_tax_rate           float64
 	Years                                          int
 	N                                              int
-	sims                                           []Sim
+	Sims                                           []Sim
 	Non_Taxable_contribution, Taxable_contribution float64
 	Non_Taxable_balance, Taxable_balance           float64
 	Yearly_retirement_expenses                     float64
 	PortfolioSelection                             Portfolio
 	Inflation_rate                                 float64
-	All_paths                                      PathGroup
-  SessionId string
+	all_paths                                      PathGroup
+	SessionId                                      string
 }
 
 // METHODS
@@ -46,9 +46,9 @@ func (r RetCalc) ShowRetCalc() {
 // because the data will be lost when passing a smaller,
 // client side object that is portable
 func (r RetCalc) RunAllPaths() PathGroup {
-	all_paths := make(PathGroup, len(r.sims), len(r.sims))
-	for i := range r.sims {
-		all_paths[i] = RunPath(r, r.sims[i])
+	all_paths := make(PathGroup, len(r.Sims), len(r.Sims))
+	for i := range r.Sims {
+		all_paths[i] = RunPath(r, r.Sims[i])
 	}
 	//sort.Sort(all_paths)
 	return all_paths
@@ -56,20 +56,20 @@ func (r RetCalc) RunAllPaths() PathGroup {
 
 // The path struct should implement this logic, it is misplaced
 func (r RetCalc) RunIncomes() []float64 {
-	incomes := make([]float64, len(r.sims), len(r.sims))
-	for i := range r.sims {
-		untaxed_total_wealth := r.Non_Taxable_balance * r.sims[i].GrowthFactor(0)
-		taxed_total_wealth := r.Taxable_balance * r.sims[i].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
+	incomes := make([]float64, len(r.Sims), len(r.Sims))
+	for i := range r.Sims {
+		untaxed_total_wealth := r.Non_Taxable_balance * r.Sims[i].GrowthFactor(0)
+		taxed_total_wealth := r.Taxable_balance * r.Sims[i].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
 		//ft, _ := r.All_paths[i].Factors()
 		//fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft,
 		//	(untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
 		sum_t, sum_ut := 0.0, 0.0
-		for j := range r.sims[i] {
+		for j := range r.Sims[i] {
 			if j+r.Age < r.Retirement_age {
-				untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[i].GrowthFactor(j)
-				taxed_total_wealth += r.Taxable_contribution * r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
-				sum_ut += r.sims[i].GrowthFactor(j)
-				sum_t += r.sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+				untaxed_total_wealth += r.Non_Taxable_contribution * r.Sims[i].GrowthFactor(j)
+				taxed_total_wealth += r.Taxable_contribution * r.Sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+				sum_ut += r.Sims[i].GrowthFactor(j)
+				sum_t += r.Sims[i].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
 			}
 		}
 		f, _ := r.IncomeFactors(i)
@@ -81,15 +81,15 @@ func (r RetCalc) RunIncomes() []float64 {
 }
 
 func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
-	untaxed_total_wealth := r.Non_Taxable_balance * r.sims[pathIndex].GrowthFactor(0)
-	taxed_total_wealth := r.Taxable_balance * r.sims[pathIndex].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
+	untaxed_total_wealth := r.Non_Taxable_balance * r.Sims[pathIndex].GrowthFactor(0)
+	taxed_total_wealth := r.Taxable_balance * r.Sims[pathIndex].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
 	sum_t, sum_ut := 0.0, 0.0
-	for j := range r.sims[pathIndex] {
+	for j := range r.Sims[pathIndex] {
 		if j+r.Age < r.Retirement_age {
-			untaxed_total_wealth += r.Non_Taxable_contribution * r.sims[pathIndex].GrowthFactor(j)
-			taxed_total_wealth += r.Taxable_contribution * r.sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
-			sum_ut += r.sims[pathIndex].GrowthFactor(j)
-			sum_t += r.sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			untaxed_total_wealth += r.Non_Taxable_contribution * r.Sims[pathIndex].GrowthFactor(j)
+			taxed_total_wealth += r.Taxable_contribution * r.Sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
+			sum_ut += r.Sims[pathIndex].GrowthFactor(j)
+			sum_t += r.Sims[pathIndex].GrowthFactorWithTaxes(j, r.Effective_tax_rate)
 		}
 	}
 	f, _ := r.IncomeFactors(pathIndex)
@@ -106,7 +106,7 @@ func (r RetCalc) PercentileIncome(percentile float64) float64 {
 
 func (r RetCalc) PercentilePath(percentile float64) Path {
 	ix := int(float64(r.N) * percentile)
-	return r.All_paths[ix]
+	return r.all_paths[ix]
 }
 
 func (r RetCalc) IncomeProbability() float64 {
@@ -122,10 +122,10 @@ func (r RetCalc) IncomeProbability() float64 {
 }
 
 func (r RetCalc) SetSim(ix int, newSim []float64) {
-	for i := range r.sims[ix] {
-		r.sims[ix][i] = newSim[i]
+	for i := range r.Sims[ix] {
+		r.Sims[ix][i] = newSim[i]
 	}
-	r.All_paths[ix] = RunPath(r, r.sims[ix])
+	r.all_paths[ix] = RunPath(r, r.Sims[ix])
 }
 
 func (r RetCalc) InflationFactors() []float64 {
@@ -137,14 +137,14 @@ func (r RetCalc) InflationFactors() []float64 {
 }
 
 func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
-	sim := r.sims[0]
+	sim := r.Sims[0]
 	l := len(sim)
 	incomeFactors := make([]float64, l, l)
 	inflationFactors := r.InflationFactors()
 	sumFactors := 0.0
 	for i := range incomeFactors {
 		if r.Age+i > r.Retirement_age {
-			incomeFactors[i] = r.sims[simIdx].GrowthFactor(i) * inflationFactors[i]
+			incomeFactors[i] = r.Sims[simIdx].GrowthFactor(i) * inflationFactors[i]
 			sumFactors += incomeFactors[i]
 		} else {
 			incomeFactors[i] = 0.0
@@ -155,14 +155,14 @@ func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 }
 
 func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
-	sim := r.sims[0]
+	sim := r.Sims[0]
 	l := len(sim)
 	incomeFactors := make([]float64, l, l)
 	inflationFactors := r.InflationFactors()
 	sumFactors := 0.0
 	for i := range incomeFactors {
 		if r.Age+i > r.Retirement_age {
-			incomeFactors[i] = r.sims[simIdx].GrowthFactorWithTaxes(i, r.Effective_tax_rate) * inflationFactors[i]
+			incomeFactors[i] = r.Sims[simIdx].GrowthFactorWithTaxes(i, r.Effective_tax_rate) * inflationFactors[i]
 			sumFactors += incomeFactors[i]
 		} else {
 			incomeFactors[i] = 0.0
@@ -173,7 +173,7 @@ func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
 }
 
 func (r RetCalc) GrowthFactor(startYear, simIdx int) float64 {
-	return r.sims[simIdx].GrowthFactor(startYear)
+	return r.Sims[simIdx].GrowthFactor(startYear)
 }
 
 // Constructors
@@ -198,11 +198,11 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 		r.Inflation_rate = 0.035
 	}
 
-	r.sims = make([]Sim, r.N, r.N)
-	for i := range r.sims {
-		r.sims[i] = Simulation(r.PortfolioSelection, r.Years)
+	r.Sims = make([]Sim, r.N, r.N)
+	for i := range r.Sims {
+		r.Sims[i] = Simulation(r.PortfolioSelection, r.Years)
 	}
-	r.All_paths = r.RunAllPaths()
+	r.all_paths = r.RunAllPaths()
 
 	return r
 }
@@ -224,13 +224,13 @@ func NewRetCalc() RetCalc {
 	r.Taxable_balance = 0.0
 	r.PortfolioSelection = HIGHRISKPORTFOLIO
 	r.Inflation_rate = 0.035
-	r.sims = make([]Sim, r.N, r.N)
-	r.All_paths = make([]Path, r.N, r.N)
-	for i := range r.sims {
-		r.sims[i] = Simulation(r.PortfolioSelection, r.Years)
-		r.All_paths[i] = RunPath(r, r.sims[i])
+	r.Sims = make([]Sim, r.N, r.N)
+	r.all_paths = make([]Path, r.N, r.N)
+	for i := range r.Sims {
+		r.Sims[i] = Simulation(r.PortfolioSelection, r.Years)
+		r.all_paths[i] = RunPath(r, r.Sims[i])
 	}
-	sort.Sort(r.All_paths)
+	sort.Sort(r.all_paths)
 
 	return r
 }

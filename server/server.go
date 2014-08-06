@@ -24,7 +24,7 @@ func RegisterHandlers() {
 	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
-  r.HandleFunc(InPathPrefix, error_handler(PathInfo)).Methods("GET")
+	r.HandleFunc(InPathPrefix, error_handler(PathInfo)).Methods("GET")
 	//r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
 	http.Handle(InputPrefix, r)
 	http.Handle(AllDataPrefix, r)
@@ -56,8 +56,8 @@ func error_handler(f func(w http.ResponseWriter, r *http.Request) error) http.Ha
 	}
 }
 
-func PathInfo(w http.ResponseWriter, r *http.Request) error{
-  return nil
+func PathInfo(w http.ResponseWriter, r *http.Request) error {
+	return nil
 }
 
 func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
@@ -76,17 +76,17 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	fmt.Printf("Min: %f\n", analytics.MinF64(incs))
 	fmt.Printf("Avg: %f\n", analytics.AvgF64(incs))
 	myRetCalc.ShowRetCalc()
-  fmt.Println("SessionId: " + myRetCalc.SessionId)
-  
-  go func() {
-    jcalc, err :=json.Marshal(myRetCalc)
-    filename:=myRetCalc.SessionId
-    pth:="tmp/"+filename
-    err=ioutil.WriteFile(pth, jcalc, 0644)
-    if err != nil{
-      panic(err)
-    }
-  }()
+	fmt.Println("SessionId: " + myRetCalc.SessionId)
+
+	go func() {
+		jcalc, err := json.Marshal(myRetCalc)
+		filename := myRetCalc.SessionId
+		pth := "tmp/" + filename
+		err = ioutil.WriteFile(pth, jcalc, 0644)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	//return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(myRetCalc.RunIncomes()))
 	return json.NewEncoder(w).Encode(analytics.HistoCumulative(myRetCalc.RunIncomes(), 250))
@@ -112,14 +112,14 @@ func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 }
 
 func SinglePath(w http.ResponseWriter, r *http.Request) error {
-  sessId:=r.Header["X-Session-Id"][0]
-  filename:="tmp/"+string(sessId)
-  mystuff, err:=ioutil.ReadFile(filename)
-  if err!=nil{
-    panic(err)
-  }
-  rc:=retcalc.RetCalc{}
-  json.Unmarshal(mystuff, &rc)
-  fmt.Println(rc)
-  return nil //json.NewEncoder(w).Encode(rc.PercentilePath(0.25))
+	sessId := r.Header["X-Session-Id"][0]
+	filename := "tmp/" + string(sessId)
+	mystuff, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	rc := retcalc.RetCalc{}
+	json.Unmarshal(mystuff, &rc)
+	fmt.Println(rc)
+	return nil //json.NewEncoder(w).Encode(rc.PercentilePath(0.25))
 }

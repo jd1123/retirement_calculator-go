@@ -34,7 +34,7 @@ func HistoFromSlice(slice []float64) *plotter.Histogram {
 // Plots the historgram using plotinum
 func Histogram(r RetCalc) {
 	//eb := all_paths.End_balances()
-	eb := make([]float64, len(r.All_paths), len(r.All_paths))
+	eb := make([]float64, len(r.all_paths), len(r.all_paths))
 	incs := r.RunIncomes()
 	for i := range incs {
 		eb[i] = incs[i]
