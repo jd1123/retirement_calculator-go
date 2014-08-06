@@ -1,4 +1,5 @@
-var _ = require('lodash');
+var HighCharts = require('highcharts-browserify')
+  , _ = require('lodash');
 
 module.exports = function (raw_bins) {
 
@@ -8,7 +9,7 @@ module.exports = function (raw_bins) {
 
   return new Highcharts.Chart({
     chart: {
-      renderTo: 'chart',
+      renderTo: 'mainchart',
       type: 'column'
     },
 

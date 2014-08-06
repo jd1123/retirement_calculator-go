@@ -25,6 +25,7 @@ type RetCalc struct {
 	PortfolioSelection                             Portfolio
 	Inflation_rate                                 float64
 	All_paths                                      PathGroup
+  SessionId string
 }
 
 // METHODS
@@ -188,7 +189,7 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	}
 	r.Years = r.Terminal_age - r.Age + 1
 	if r.N == 0 {
-		r.N = 50000
+		r.N = 200
 	}
 	if r.PortfolioSelection == BLANKPORTFOLIO {
 		r.PortfolioSelection = HIGHRISKPORTFOLIO

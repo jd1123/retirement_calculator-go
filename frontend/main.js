@@ -1,8 +1,8 @@
-var HighCharts = require('highcharts-browserify');
-
 var beautify = require('js-beautify').js_beautify;
 
 $(document).ready(function () {
+  var sessionId = Math.random().toString(16).substring(2)
+  sessionStorage.setItem("SessionID", sessionId)
   var loading = false;
   $('#gocalc').click(function () {
     if (loading) {
@@ -10,7 +10,7 @@ $(document).ready(function () {
     } else {
       loading = true;
       $('pre#json').text('please wait');
-      var payload = {};
+      var payload = { SessionId: sessionId };
       $('#inputs input').each(function(i, e) {
         var $el = $(e);
         var type = $el.data('type');
@@ -28,6 +28,20 @@ $(document).ready(function () {
         var output = beautify(JSON.stringify(data), { indent_size: 2 });
         $('pre#json').text(output);
         require('./histo')(data["Bins"]);
+        $('#mainchart').show();
+        $('#mainchart .highcharts-tracker rect').on('click', function(){
+          $.ajax({
+            type: "GET",
+            url: '/paths/',
+            beforeSend: function(xhr) {
+              xhr.setRequestHeader('X-Session-Id', sessionId)
+            },
+            success: function (data) {
+              console.log(data)
+            },
+            dataType: 'json'
+          });
+        })
       };
 
       $.ajax({

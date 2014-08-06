@@ -99,7 +99,7 @@ func HistoCumulative(a []float64, n_bins int) Histo {
 		} else {
 			h.Bins[i].Weight = float64(cdf[k])
 		}
-		fmt.Println("Key: ", k, " Bins[i].Max: ", h.Bins[i].Max)
+		//fmt.Println("Key: ", k, " Bins[i].Max: ", h.Bins[i].Max)
 		i++
 	}
 

@@ -1,5 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var _ = require('lodash');
+var HighCharts = require('highcharts-browserify')
+  , _ = require('lodash');
 
 module.exports = function (raw_bins) {
 
@@ -9,7 +10,7 @@ module.exports = function (raw_bins) {
 
   return new Highcharts.Chart({
     chart: {
-      renderTo: 'chart',
+      renderTo: 'mainchart',
       type: 'column'
     },
 
@@ -34,12 +35,12 @@ module.exports = function (raw_bins) {
   })
 };
 
-},{"lodash":9}],2:[function(require,module,exports){
-var HighCharts = require('highcharts-browserify');
-
+},{"highcharts-browserify":3,"lodash":9}],2:[function(require,module,exports){
 var beautify = require('js-beautify').js_beautify;
 
 $(document).ready(function () {
+  var sessionId = Math.random().toString(16).substring(2)
+  sessionStorage.setItem("SessionID", sessionId)
   var loading = false;
   $('#gocalc').click(function () {
     if (loading) {
@@ -47,7 +48,7 @@ $(document).ready(function () {
     } else {
       loading = true;
       $('pre#json').text('please wait');
-      var payload = {};
+      var payload = { SessionId: sessionId };
       $('#inputs input').each(function(i, e) {
         var $el = $(e);
         var type = $el.data('type');
@@ -65,6 +66,20 @@ $(document).ready(function () {
         var output = beautify(JSON.stringify(data), { indent_size: 2 });
         $('pre#json').text(output);
         require('./histo')(data["Bins"]);
+        $('#mainchart').show();
+        $('#mainchart .highcharts-tracker rect').on('click', function(){
+          $.ajax({
+            type: "GET",
+            url: '/paths/',
+            beforeSend: function(xhr) {
+              xhr.setRequestHeader('X-Session-Id', sessionId)
+            },
+            success: function (data) {
+              console.log(data)
+            },
+            dataType: 'json'
+          });
+        })
       };
 
       $.ajax({
@@ -79,7 +94,7 @@ $(document).ready(function () {
   });
 });
 
-},{"./histo":1,"highcharts-browserify":3,"js-beautify":5}],3:[function(require,module,exports){
+},{"./histo":1,"js-beautify":5}],3:[function(require,module,exports){
 var $ = require('jquery');
 /*
  Highcharts JS v3.0.10 (2014-03-10)

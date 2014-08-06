@@ -6,7 +6,8 @@
   "scripts": {
     "start": "go run main.go",
     "watch": "watchify frontend/main.js -o static/app.js",
-	"build": "browserify frontend/main.js -o static/app.js"
+    "build": "browserify frontend/main.js -o static/app.js",
+    "go": "watchy -k -w . -i '/node_modules|\\.json|coverage$' -- go run main.go"
   },
   "repository": {
     "type": "git",
