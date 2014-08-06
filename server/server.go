@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"retirement_calculator-go/analytics"
 	"retirement_calculator-go/retcalc"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -113,13 +114,13 @@ func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 
 func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	sessId := r.Header["X-Session-Id"][0]
+	percentile, _ := strconv.ParseFloat(r.Header["X-Percentile-Req"][0], 64)
 	filename := "tmp/" + string(sessId)
 	mystuff, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
-	rc := retcalc.RetCalc{}
-	json.Unmarshal(mystuff, &rc)
-	fmt.Println(rc)
-	return nil //json.NewEncoder(w).Encode(rc.PercentilePath(0.25))
+	rc := retcalc.NewRetCalcFromJSON(mystuff)
+	fmt.Println("Percentile Requested:", percentile, "SessionID", sessId)
+	return json.NewEncoder(w).Encode(rc.PercentilePath(percentile))
 }

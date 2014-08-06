@@ -189,7 +189,7 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	}
 	r.Years = r.Terminal_age - r.Age + 1
 	if r.N == 0 {
-		r.N = 200
+		r.N = 10000
 	}
 	if r.PortfolioSelection == BLANKPORTFOLIO {
 		r.PortfolioSelection = HIGHRISKPORTFOLIO

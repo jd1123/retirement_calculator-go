@@ -35,6 +35,7 @@ $(document).ready(function () {
             url: '/paths/',
             beforeSend: function(xhr) {
               xhr.setRequestHeader('X-Session-Id', sessionId)
+			  xhr.setRequestHeader('X-Percentile-Req', 0.25)
             },
             success: function (data) {
               console.log(data)
