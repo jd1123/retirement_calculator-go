@@ -24,6 +24,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -38,10 +39,22 @@ const listenPort = 8081
 func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
+
+	// Clean up all tmp files on exit
 	go func() {
 		for sig := range c {
 			log.Printf("captured %v cleaning up and exiting..", sig)
-			os.Remove("tmp/myfile")
+
+			files, err := ioutil.ReadDir("tmp")
+			if err != nil {
+				panic(err)
+			}
+
+			for _, f := range files {
+				fn := "tmp/" + f.Name()
+				os.Remove(fn)
+			}
+
 			pprof.StopCPUProfile()
 			os.Exit(1)
 		}
