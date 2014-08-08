@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// consts to define the url paths
 const AllDataPrefix = "/alldata/"
 const IncomesPrefix = "/incomes/"
 const PathPrefix = "/paths/"
@@ -21,16 +22,22 @@ const InPathPrefix = "/inpath/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
+
+	// Actual used functions
 	r.HandleFunc(InputPrefix, error_handler(RecalcFromWebInput)).Methods("POST")
 	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
+
+	// Functions for testing
 	r.HandleFunc(IncomesPrefix, error_handler(IncomesJSON)).Methods("GET")
 	r.HandleFunc(AllDataPrefix, error_handler(Retcalc_basic)).Methods("GET")
 	r.HandleFunc(InPathPrefix, error_handler(PathInfo)).Methods("GET")
-	//r.HandleFunc(AllDataPrefix, error_handler(Retcalc_user_input)).Methods("POST")
+
+	//Set Up the Handlers
 	http.Handle(InputPrefix, r)
+	http.Handle(PathPrefix, r)
+
 	http.Handle(AllDataPrefix, r)
 	http.Handle(IncomesPrefix, r)
-	http.Handle(PathPrefix, r)
 }
 
 // badRequest is handled by setting the status code in the reply to StatusBadRequest.
@@ -61,6 +68,8 @@ func PathInfo(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// Creates a RetCalc object from user input and returns
+// a histogram of the incomes from this input
 func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
@@ -79,6 +88,7 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	myRetCalc.ShowRetCalc()
 	fmt.Println("SessionId: " + myRetCalc.SessionId)
 
+	// Save a file with the simulations for future reference
 	go func() {
 		jcalc, err := json.Marshal(myRetCalc)
 		filename := myRetCalc.SessionId
@@ -93,25 +103,22 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(analytics.HistoCumulative(myRetCalc.RunIncomes(), 250))
 }
 
+// Creates and returns a basic RetCalc object
 func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
 	return json.NewEncoder(w).Encode(rc)
 }
 
-/*
-func Retcalc_user_input(w http.ResponseWriter, r *http.Request) error {
-	req := retcalc.RetCalcWebInput{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		panic(err)
-	}
-	return json.NewEncoder(w).Encode(req)
-}
-*/
+// this is for testing - returns income for a default RetCalc
 func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
 	return json.NewEncoder(w).Encode(retcalc.HistoFromSlice(rc.RunIncomes()))
 }
 
+// This function looks for two HTTP headers:
+// X-Session-Id to get the SessionId and
+// X-Percentile-Req to check which path the user clicked on
+// Returns a json encoded path to display to the user
 func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	sessId := r.Header["X-Session-Id"][0]
 	percentile, _ := strconv.ParseFloat(r.Header["X-Percentile-Req"][0], 64)
