@@ -67,13 +67,15 @@ $(document).ready(function () {
         $('pre#json').text(output);
         require('./histo')(data["Bins"]);
         $('#mainchart').show();
-        $('#mainchart .highcharts-tracker rect').on('click', function(){
-          $.ajax({
+        $('#mainchart .highcharts-tracker rect').on('click', function(event){
+			ix = $(event.target).index();
+			percentile = data['Bins'][ix]['Weight'];
+  			$.ajax({
             type: "GET",
             url: '/paths/',
             beforeSend: function(xhr) {
               xhr.setRequestHeader('X-Session-Id', sessionId)
-			  xhr.setRequestHeader('X-Percentile-Req', 0.25)
+			  xhr.setRequestHeader('X-Percentile-Req', percentile)
             },
             success: function (data) {
               console.log(data)
