@@ -123,11 +123,13 @@ func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	sessId := r.Header["X-Session-Id"][0]
 	percentile, _ := strconv.ParseFloat(r.Header["X-Percentile-Req"][0], 64)
 	filename := "tmp/" + string(sessId)
-	mystuff, err := ioutil.ReadFile(filename)
+	savedSim, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
-	rc := retcalc.NewRetCalcFromJSON(mystuff)
+	rc := retcalc.NewRetCalcFromJSON(savedSim)
 	fmt.Println("Percentile Requested:", percentile, "SessionID", sessId)
+	j, _ := json.Marshal(rc.PercentilePath(percentile))
+	fmt.Println(string(j))
 	return json.NewEncoder(w).Encode(rc.PercentilePath(percentile))
 }
