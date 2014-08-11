@@ -36,7 +36,51 @@ import (
 
 const listenPort = 8081
 
+func serverMsg(listenPort int) {
+	fmt.Println("RetCalc server listening on port " + strconv.Itoa(listenPort))
+}
+
+func usage() {
+	fmt.Println("Usage: main -p <port number>")
+}
+
+func processCmdLnArgs(args []string) int {
+	lp := listenPort
+	fail := false
+	if len(args) > 1 {
+		i := 1
+		for i < len(args) {
+			switch args[i] {
+
+			// Port setting
+			case "-p":
+				{
+					p, err := strconv.Atoi(args[i+1])
+					if err != nil {
+						usage()
+					} else {
+						lp = p
+					}
+					i++
+				}
+			// Unrecognized argument - fail
+			default:
+				{
+					fail = true
+				}
+			}
+			i++
+		}
+	}
+	if fail {
+		usage()
+	}
+	return lp
+}
+
 func main() {
+	// Get command line args
+	lp := processCmdLnArgs(os.Args)
 
 	// Clean up all tmp files on exit
 	c := make(chan os.Signal, 1)
@@ -61,9 +105,9 @@ func main() {
 	}()
 
 	// Start listening
-	listenStr := ":" + strconv.Itoa(listenPort)
+	listenStr := ":" + strconv.Itoa(lp)
 	server.RegisterHandlers()
 	http.Handle("/", http.FileServer(http.Dir("./static")))
-	fmt.Printf("RetCalc server on: Listening on port %d\n", listenPort)
+	serverMsg(lp)
 	http.ListenAndServe(listenStr, nil)
 }
