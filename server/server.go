@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"retirement_calculator-go/analytics"
 	"retirement_calculator-go/retcalc"
 	"strconv"
@@ -79,13 +80,16 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println()
 	fmt.Println("POST request recieved - RecalcFromWebInput()")
 	fmt.Printf("Recived: %s\n", string(body))
-	fmt.Println()
+
+	/* no need to print this
 	incs := myRetCalc.RunIncomes()
 	fmt.Println("RunIncomes() analystics:")
 	fmt.Printf("Max: %f\n", analytics.MaxF64(incs))
 	fmt.Printf("Min: %f\n", analytics.MinF64(incs))
 	fmt.Printf("Avg: %f\n", analytics.AvgF64(incs))
 	myRetCalc.ShowRetCalc()
+	*/
+
 	fmt.Println("SessionId: " + myRetCalc.SessionId)
 
 	// Save a file with the simulations for future reference
@@ -120,16 +124,35 @@ func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 // X-Percentile-Req to check which path the user clicked on
 // Returns a json encoded path to display to the user
 func SinglePath(w http.ResponseWriter, r *http.Request) error {
+	// Process HTTP headers
 	sessId := r.Header["X-Session-Id"][0]
 	percentile, _ := strconv.ParseFloat(r.Header["X-Percentile-Req"][0], 64)
 	filename := "tmp/" + string(sessId)
+
+	// Error check HTTP Headers
+	if percentile > 1.0 || percentile < 0.0 {
+		fmt.Println("ERROR: invalid percentile requested - setting to 0.5")
+		percentile = 0.5
+	}
+
+	if _, err := os.Stat(filename); err != nil {
+		fmt.Printf("File does not exist: panicking")
+		panic(err)
+	}
+
+	// Try opening file
 	savedSim, err := ioutil.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
+
+	// Now do the retcalc processing
 	rc := retcalc.NewRetCalcFromJSON(savedSim)
 	fmt.Println("Percentile Requested:", percentile, "SessionID", sessId)
-	j, _ := json.Marshal(rc.PercentilePath(percentile))
-	fmt.Println(string(j))
+
+	// Debug stuff - leave it in here
+	// j, _ := json.Marshal(rc.PercentilePath(percentile))
+	// fmt.Println(string(j))
+
 	return json.NewEncoder(w).Encode(rc.PercentilePath(percentile))
 }

@@ -29,7 +29,6 @@ type RetCalc struct {
 }
 
 // METHODS
-
 func (r RetCalc) ShowRetCalc() {
 	fmt.Println("----Showing you the RetCalc----")
 	fmt.Printf("Age: %d\n", r.Age)
@@ -80,6 +79,7 @@ func (r RetCalc) RunIncomes() []float64 {
 	return incomes
 }
 
+// returns the income for a specific path in all_paths
 func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
 	untaxed_total_wealth := r.Non_Taxable_balance * r.Sims[pathIndex].GrowthFactor(0)
 	taxed_total_wealth := r.Taxable_balance * r.Sims[pathIndex].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
@@ -98,12 +98,14 @@ func (r RetCalc) IncomeOnPath(pathIndex int) float64 {
 	return income
 }
 
+// returns the minimum income that you will have with percentile probability
 func (r RetCalc) PercentileIncome(percentile float64) float64 {
 	incomes := r.RunIncomes()
 	ix := int(percentile * float64(r.N))
 	return incomes[ix]
 }
 
+// returns the path of the minumum income with percentile probability
 func (r RetCalc) PercentilePath(percentile float64) Path {
 	ix := int(float64(r.N) * percentile)
 	return r.all_paths[ix]
@@ -121,6 +123,7 @@ func (r RetCalc) IncomeProbability() float64 {
 	return float64(counter) / float64(r.N)
 }
 
+// Sets a simulation - used for testing
 func (r RetCalc) SetSim(ix int, newSim []float64) {
 	for i := range r.Sims[ix] {
 		r.Sims[ix][i] = newSim[i]
@@ -128,6 +131,7 @@ func (r RetCalc) SetSim(ix int, newSim []float64) {
 	r.all_paths[ix] = RunPath(r, r.Sims[ix])
 }
 
+// returns the inflation factors for the retcalc object
 func (r RetCalc) InflationFactors() []float64 {
 	inflationFactors := make([]float64, r.Years, r.Years)
 	for i := 0; i < r.Years; i++ {
@@ -136,6 +140,7 @@ func (r RetCalc) InflationFactors() []float64 {
 	return inflationFactors
 }
 
+// returns the income factors for the retcalc objects for sim simIdx
 func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 	sim := r.Sims[0]
 	l := len(sim)
@@ -154,6 +159,7 @@ func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 	return sumFactors, incomeFactors
 }
 
+// returns the income factors with taxes for sim simIdx
 func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
 	sim := r.Sims[0]
 	l := len(sim)
@@ -172,6 +178,7 @@ func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
 	return sumFactors, incomeFactors
 }
 
+// returns the growth factor for starting year startYear and sim simIdx
 func (r RetCalc) GrowthFactor(startYear, simIdx int) float64 {
 	return r.Sims[simIdx].GrowthFactor(startYear)
 }
@@ -207,6 +214,7 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	return r
 }
 
+// A very basic RetCalc with standard info
 func NewRetCalc() RetCalc {
 	r := RetCalc{}
 

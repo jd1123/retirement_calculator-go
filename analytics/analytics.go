@@ -1,17 +1,18 @@
 package analytics
 
 import (
-	"fmt"
 	"math"
 	"sort"
 	"strconv"
 )
 
+// Wrapper to make my life easier
 func FloatToString(input_num float64) string {
 	// to convert a float number to a string
 	return strconv.FormatFloat(input_num, 'f', 6, 64)
 }
 
+// Structs to make a histogram
 type Bin struct {
 	Max, Min float64
 	Weight   float64
@@ -21,6 +22,7 @@ type Histo struct {
 	Bins []Bin
 }
 
+// Max for float64 slices
 func MaxF64(a []float64) float64 {
 	if len(a) == 0 {
 		panic("Empty slice passed!")
@@ -34,6 +36,7 @@ func MaxF64(a []float64) float64 {
 	return max
 }
 
+// Min for float64 slices
 func MinF64(a []float64) float64 {
 	if len(a) == 0 {
 		panic("Empty slice passed!")
@@ -47,6 +50,7 @@ func MinF64(a []float64) float64 {
 	return min
 }
 
+// Average for float64 slices
 func AvgF64(a []float64) float64 {
 	if len(a) == 0 {
 		panic("Empty slice passed!")
@@ -58,10 +62,11 @@ func AvgF64(a []float64) float64 {
 	return avg / float64(len(a))
 }
 
+// Returns a cumulative histogram for a []float64 slice
 func HistoCumulative(a []float64, n_bins int) Histo {
 	normalize := true
 	max := MaxF64(a)
-	min := MinF64(a)
+	//min := MinF64(a)
 	l := len(a)
 	cdf := make(map[float64]int)
 	bins := make([]float64, n_bins, n_bins)
@@ -99,10 +104,10 @@ func HistoCumulative(a []float64, n_bins int) Histo {
 		} else {
 			h.Bins[i].Weight = float64(cdf[k])
 		}
-		//fmt.Println("Key: ", k, " Bins[i].Max: ", h.Bins[i].Max)
 		i++
 	}
 
+	// commented out code to look at the histo
 	/*
 		// Print Out Map
 		for k := range cdf {
@@ -114,11 +119,12 @@ func HistoCumulative(a []float64, n_bins int) Histo {
 		}
 		// END Print Out Map
 	*/
-
-	fmt.Println("HistoCumulative() analytics:")
-	fmt.Printf("Max: %f\n", max)
-	fmt.Printf("Min: %f\n", min)
-	fmt.Printf("Len: %d\n", l)
+	/*
+		fmt.Println("HistoCumulative() analytics:")
+		fmt.Printf("Max: %f\n", max)
+		fmt.Printf("Min: %f\n", min)
+		fmt.Printf("Len: %d\n", l)
+	*/
 
 	return h
 }

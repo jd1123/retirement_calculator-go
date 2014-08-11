@@ -37,10 +37,10 @@ import (
 const listenPort = 8081
 
 func main() {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
 
 	// Clean up all tmp files on exit
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 	go func() {
 		for sig := range c {
 			log.Printf("captured %v cleaning up and exiting..", sig)
@@ -60,6 +60,7 @@ func main() {
 		}
 	}()
 
+	// Start listening
 	listenStr := ":" + strconv.Itoa(listenPort)
 	server.RegisterHandlers()
 	http.Handle("/", http.FileServer(http.Dir("./static")))
