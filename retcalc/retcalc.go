@@ -46,10 +46,22 @@ func (r RetCalc) ShowRetCalc() {
 // client side object that is portable
 func (r RetCalc) RunAllPaths() PathGroup {
 	all_paths := make(PathGroup, len(r.Sims), len(r.Sims))
+	pathChan := make(chan Path)
 	for i := range r.Sims {
-		all_paths[i] = RunPath(r, r.Sims[i])
+		go func() {
+			pathChan <- RunPath(r, r.Sims[i])
+			//all_paths[i] = RunPath(r, r.Sims[i])
+		}()
 	}
 	//sort.Sort(all_paths)
+	i := 0
+	for j := range pathChan {
+		all_paths[i] = j
+		i++
+		if i == len(r.Sims) {
+			close(pathChan)
+		}
+	}
 	return all_paths
 }
 
