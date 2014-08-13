@@ -21,3 +21,8 @@ func TestMonthlyMoneyGrowthTerminal(t *testing.T) {
 		t.Errorf("mortgage.MonthlyMoneyGrowthTerminal() should equal known value")
 	}
 }
+
+func TestMortgageCalc(t *testing.T) {
+	m := NewMortgageCalc(360, 559000, 900, 0.2, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	m.PrintMortgageCalc()
+}

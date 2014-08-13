@@ -20,6 +20,14 @@ func MonthlyMoneyGrowthTerminal(amount, r float64, termInMonths int) float64 {
 	return amount * GF_m(r, termInMonths) // math.Pow((1+c), float64(termInMonths))
 }
 
+func Sum(a []float64) float64 {
+	sum := 0.0
+	for i := 0; i < len(a); i++ {
+		sum += a[i]
+	}
+	return sum
+}
+
 func SumProduct(a, b []float64) float64 {
 	if len(a) != len(b) {
 		panic("lengths of slices are not equal!")
