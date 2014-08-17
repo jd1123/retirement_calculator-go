@@ -2,6 +2,8 @@ package mortgage
 
 import "fmt"
 
+import "retirement_calculator-go/analytics"
+
 type MortgageCalc struct {
 	// Inputs
 	SalePrice             float64
@@ -15,6 +17,7 @@ type MortgageCalc struct {
 	TermInMonths          int
 	ExpectedHousingReturn float64
 	Commission            float64
+	Income                float64
 	// Computed fields
 	monthlyPayment         float64
 	monthlyTaxes           float64
@@ -48,7 +51,7 @@ func NewMortgageCalc(termInMonths int, salePrice, insurancePerYear, downPaymentP
 	m.PropertyTax = propertyTax
 	m.ExpectedHousingReturn = expectedHousingReturn
 	m.IRR = irr
-
+	m.Income = 100000
 	m.computeParameters()
 
 	return m
@@ -136,7 +139,23 @@ func (m MortgageCalc) yearlyInterest() map[int]float64 {
 			fmt.Println("mnth:", i, " interest:", interest[i+j])
 			totalInt += interest[i+j]
 		}
-		yrlyInterest[((i+12)/12)+1] = totalInt
+		yrlyInterest[(i / 12)] = totalInt
 	}
 	return yrlyInterest
+}
+
+func (m MortgageCalc) nominalMonthlyIncomeTaxBenefit() []float64 {
+	yrlyInterest := m.yearlyInterest()
+	termInYears := m.TermInMonths / 12
+	yearlyTaxes := make([]float64, termInYears, termInYears)
+	yearlyIncomeTaxBenefit := make([]float64, termInYears, termInYears)
+	monthlyIncomeTaxBenefit := make([]float64, m.TermInMonths, m.TermInMonths)
+	for i := 0; i < termInYears; i++ {
+		yearlyTaxes[i] = m.SalePrice * GF(m.ExpectedHousingReturn, i) * m.PropertyTax
+		yearlyIncomeTaxBenefit[i] = analytics.IncomeTaxLiability(m.Income) - analytics.IncomeTaxLiability(m.Income-yearlyTaxes[i]-yrlyInterest[i])
+		for j := 0; j < 12; j++ {
+			monthlyIncomeTaxBenefit[i*12+j] = yearlyIncomeTaxBenefit[i] / 12.0
+		}
+	}
+	return monthlyIncomeTaxBenefit
 }

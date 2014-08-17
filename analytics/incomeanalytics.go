@@ -1,4 +1,4 @@
-package incomeanalytics
+package analytics
 
 import "sort"
 
@@ -20,10 +20,8 @@ func IncomeTaxLiability(income float64) float64 {
 		i++
 	}
 	sort.Float64s(keys)
-
 	incomeLiability := 0.0
 	//incomeLeft := income
-
 	for i = 1; i < len(keys); i++ {
 		if income > keys[i] {
 			if i != len(keys)-1 {
