@@ -1,6 +1,9 @@
 package mortgage
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestMortgageMonthlyPayment(t *testing.T) {
 	loan := 408070.0
@@ -25,4 +28,17 @@ func TestMonthlyMoneyGrowthTerminal(t *testing.T) {
 func TestMortgageCalc(t *testing.T) {
 	m := NewMortgageCalc(360, 559000, 900, 0.2, 0.0395, 0.065, 0.015, 0.02, 0.035)
 	m.PrintMortgageCalc()
+}
+
+func TestAmmortizationTable(t *testing.T) {
+	m := NewMortgageCalc(360, 559000, 900, 0.2, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	m.PrintAmmortizationTable()
+}
+
+func TestYearlyInterest(t *testing.T) {
+	m := NewMortgageCalc(360, 559000, 900, 0.2, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	yr := m.yearlyInterest()
+	for i := 1; i <= len(yr); i++ {
+		fmt.Println("yr:", i, " int:", yr[i])
+	}
 }

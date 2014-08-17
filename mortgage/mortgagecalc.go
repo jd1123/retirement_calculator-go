@@ -83,7 +83,7 @@ func (m MortgageCalc) DFPaymentsVector(irr float64) []float64 {
 			payments[i] = m.DownPaymentPercentage * m.SalePrice
 		} else {
 			fixed := m.FixedMonthlyPayment * DF_m(irr, i)
-			floating := m.FloatingMonthlyPayment * DF(irr, i)
+			floating := m.FloatingMonthlyPayment * DF(irr, i) * GF_m(m.ExpectedHousingReturn, i)
 			payments[i] = fixed + floating
 		}
 	}
@@ -98,4 +98,45 @@ func (m MortgageCalc) DFTerminalHousePrice(irr float64) float64 {
 // DF of all payments including down payment
 func (m MortgageCalc) TotalOwnershipCost(irr float64) float64 {
 	return Sum(m.DFPaymentsVector(irr)) + m.DFTerminalHousePrice(irr)
+}
+
+func (m MortgageCalc) TotalInterest() float64 {
+	totalPayments := MortgageMonthlyPayment(m.LoanAmount, m.LoanRate, m.TermInMonths) * float64(m.TermInMonths)
+	return totalPayments - m.LoanAmount
+}
+
+func (m MortgageCalc) AmmortizationTable() ([]int, []float64, []float64) {
+	mp := MortgageMonthlyPayment(m.LoanAmount, m.LoanRate, m.TermInMonths)
+	month := make([]int, m.TermInMonths, m.TermInMonths)
+	principal := make([]float64, m.TermInMonths, m.TermInMonths)
+	interest := make([]float64, m.TermInMonths, m.TermInMonths)
+	remainingBalance := m.LoanAmount
+	for i := 0; i < m.TermInMonths; i++ {
+		month[i] = i + 1
+		interest[i] = remainingBalance * m.LoanRate / 12.0
+		principal[i] = mp - interest[i]
+		remainingBalance -= principal[i]
+	}
+	return month, principal, interest
+}
+
+func (m MortgageCalc) PrintAmmortizationTable() {
+	month, principal, interest := m.AmmortizationTable()
+	for i := 0; i < m.TermInMonths; i++ {
+		fmt.Println("Month: ", month[i], " Principal: ", principal[i], " Interest: ", interest[i])
+	}
+}
+
+func (m MortgageCalc) yearlyInterest() map[int]float64 {
+	yrlyInterest := make(map[int]float64)
+	_, _, interest := m.AmmortizationTable()
+	for i := 0; i < m.TermInMonths; i += 12 {
+		totalInt := 0.0
+		for j := 0; j < 12; j++ {
+			fmt.Println("mnth:", i, " interest:", interest[i+j])
+			totalInt += interest[i+j]
+		}
+		yrlyInterest[((i+12)/12)+1] = totalInt
+	}
+	return yrlyInterest
 }
