@@ -136,7 +136,7 @@ func (m MortgageCalc) yearlyInterest() map[int]float64 {
 	for i := 0; i < m.TermInMonths; i += 12 {
 		totalInt := 0.0
 		for j := 0; j < 12; j++ {
-			fmt.Println("mnth:", i, " interest:", interest[i+j])
+			//fmt.Println("mnth:", i, " interest:", interest[i+j])
 			totalInt += interest[i+j]
 		}
 		yrlyInterest[(i / 12)] = totalInt
@@ -158,4 +158,11 @@ func (m MortgageCalc) nominalMonthlyIncomeTaxBenefit() []float64 {
 		}
 	}
 	return monthlyIncomeTaxBenefit
+}
+
+func (m MortgageCalc) TotalMonthlyPayments() (float64, float64, float64) {
+	mp := MortgageMonthlyPayment(m.LoanAmount, m.LoanRate, m.TermInMonths)
+	taxes := m.SalePrice * m.PropertyTax / 12.0
+	insurance := m.InsurancePerYear / 12.0
+	return mp, taxes, insurance
 }

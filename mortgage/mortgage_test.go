@@ -2,6 +2,7 @@ package mortgage
 
 import (
 	"fmt"
+	"retirement_calculator-go/analytics"
 	"testing"
 )
 
@@ -79,5 +80,10 @@ func TestYearlyInterest(t *testing.T) {
 }
 
 func TestNominalIncomeTaxBenefit(t *testing.T) {
-	//	m := NewMortgageCalc(360, 559000, 900, 0.2, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	mp, tax, ins := m.TotalMonthlyPayments()
+	m.Income = (105000 - 17500) * 0.955
+	fmt.Println("Total Monthly Payment: ", mp+tax+ins)
+	fmt.Println(m.nominalMonthlyIncomeTaxBenefit()[0])
+	fmt.Println("Income Taxes: ", analytics.IncomeTaxLiability(m.Income))
 }
