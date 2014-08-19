@@ -1,8 +1,13 @@
 package mortgage
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
 
-import "retirement_calculator-go/analytics"
+	"retirement_calculator-go/analytics"
+)
+
+const STANDARD_DEDUCTION = 6100
 
 type MortgageCalc struct {
 	// Inputs
@@ -36,25 +41,6 @@ type Payment struct {
 type RentCalc struct {
 	MonthlyRent   float64
 	RentInflation float64
-}
-
-func NewMortgageCalc(termInMonths int, salePrice, insurancePerYear, downPaymentPercentage, loanRate, irr, maintencePerYear, propertyTax,
-	expectedHousingReturn float64) MortgageCalc {
-
-	m := MortgageCalc{}
-	m.TermInMonths = termInMonths
-	m.SalePrice = salePrice
-	m.InsurancePerYear = insurancePerYear
-	m.DownPaymentPercentage = downPaymentPercentage
-	m.LoanRate = loanRate
-	m.UpkeepPctPerYear = maintencePerYear
-	m.PropertyTax = propertyTax
-	m.ExpectedHousingReturn = expectedHousingReturn
-	m.IRR = irr
-	m.Income = 100000
-	m.computeParameters()
-
-	return m
 }
 
 func (m *MortgageCalc) computeParameters() {
@@ -100,7 +86,8 @@ func (m MortgageCalc) DFTerminalHousePrice(irr float64) float64 {
 
 // DF of all payments including down payment
 func (m MortgageCalc) TotalOwnershipCost(irr float64) float64 {
-	return Sum(m.DFPaymentsVector(irr)) + m.DFTerminalHousePrice(irr)
+	return -Sum(m.DFPaymentsVector(irr)) + m.DFTerminalHousePrice(irr)
+
 }
 
 func (m MortgageCalc) TotalInterest() float64 {
@@ -152,7 +139,7 @@ func (m MortgageCalc) nominalMonthlyIncomeTaxBenefit() []float64 {
 	monthlyIncomeTaxBenefit := make([]float64, m.TermInMonths, m.TermInMonths)
 	for i := 0; i < termInYears; i++ {
 		yearlyTaxes[i] = m.SalePrice * GF(m.ExpectedHousingReturn, i) * m.PropertyTax
-		yearlyIncomeTaxBenefit[i] = analytics.IncomeTaxLiability(m.Income) - analytics.IncomeTaxLiability(m.Income-yearlyTaxes[i]-yrlyInterest[i])
+		yearlyIncomeTaxBenefit[i] = analytics.IncomeTaxLiability(m.Income-STANDARD_DEDUCTION) - analytics.IncomeTaxLiability(m.Income-yearlyTaxes[i]-yrlyInterest[i])
 		for j := 0; j < 12; j++ {
 			monthlyIncomeTaxBenefit[i*12+j] = yearlyIncomeTaxBenefit[i] / 12.0
 		}
@@ -165,4 +152,52 @@ func (m MortgageCalc) TotalMonthlyPayments() (float64, float64, float64) {
 	taxes := m.SalePrice * m.PropertyTax / 12.0
 	insurance := m.InsurancePerYear / 12.0
 	return mp, taxes, insurance
+}
+
+func (m MortgageCalc) mortgagePayment() float64 {
+	return MortgageMonthlyPayment(m.LoanAmount, m.LoanRate, m.TermInMonths)
+}
+
+func (m MortgageCalc) copyCalc() MortgageCalc {
+	nm := m
+	return nm
+}
+
+func (m MortgageCalc) RateIncreaseEffect(deltaRate float64) float64 {
+	nm := m.copyCalc()
+	nm.LoanRate = m.LoanRate + deltaRate
+	nm.computeParameters()
+	return nm.mortgagePayment() - m.mortgagePayment()
+}
+
+func NewMortgageCalcFromJSON(jsonObj []byte) MortgageCalc {
+	var m MortgageCalc
+	err := json.Unmarshal(jsonObj, &m)
+	if err != nil {
+		fmt.Println("ERROR in NewMortgageCalcFromJSON()")
+		fmt.Println(err)
+	}
+	m.computeParameters()
+	m.Income = 100000
+
+	return m
+}
+
+func NewMortgageCalc(termInMonths int, salePrice, insurancePerYear, downPaymentPercentage, loanRate, irr, maintencePerYear, propertyTax,
+	expectedHousingReturn float64) MortgageCalc {
+
+	m := MortgageCalc{}
+	m.TermInMonths = termInMonths
+	m.SalePrice = salePrice
+	m.InsurancePerYear = insurancePerYear
+	m.DownPaymentPercentage = downPaymentPercentage
+	m.LoanRate = loanRate
+	m.UpkeepPctPerYear = maintencePerYear
+	m.PropertyTax = propertyTax
+	m.ExpectedHousingReturn = expectedHousingReturn
+	m.IRR = irr
+	m.Income = 100000
+	m.computeParameters()
+
+	return m
 }

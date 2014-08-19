@@ -2,7 +2,6 @@ package mortgage
 
 import (
 	"fmt"
-	"retirement_calculator-go/analytics"
 	"testing"
 )
 
@@ -79,6 +78,7 @@ func TestYearlyInterest(t *testing.T) {
 	//	}
 }
 
+/*
 func TestNominalIncomeTaxBenefit(t *testing.T) {
 	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.035)
 	mp, tax, ins := m.TotalMonthlyPayments()
@@ -86,4 +86,33 @@ func TestNominalIncomeTaxBenefit(t *testing.T) {
 	fmt.Println("Total Monthly Payment: ", mp+tax+ins)
 	fmt.Println(m.nominalMonthlyIncomeTaxBenefit()[0])
 	fmt.Println("Income Taxes: ", analytics.IncomeTaxLiability(m.Income))
+}*/
+
+func TestTotalOwnershipCost(t *testing.T) {
+	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.03)
+	knownOwn := 450442.0
+	totOwn := m.TotalOwnershipCost(m.IRR)
+	if totOwn-knownOwn > 100.0 {
+		t.Errorf("TotalOwnershipCost() should be equal to known value")
+		fmt.Println("totOwn: ", totOwn, " knownOwn: ", knownOwn)
+	}
+}
+
+func TestSumProduct(t *testing.T) {
+	r := SumProduct([]float64{1.0, 2.0, 3.0}, []float64{1.0, 2.0, 3.0})
+	if r != 14.0 {
+		t.Errorf("SumProduct() does not match known value")
+		fmt.Println("SumProduct(): ", r)
+	}
+}
+
+func TestCopy(t *testing.T) {
+	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.03)
+	nm := m.copyCalc()
+	if &nm == &m {
+		t.Errorf("MortgageCalc.copyCalc() should return new instance")
+	}
+	if nm != m {
+		t.Errorf("MortgageCalc.copyCalc() should return an exact replica")
+	}
 }

@@ -3,3 +3,4 @@
 .bundle.js
 node_modules/*
 tmp/*
+coverage.out

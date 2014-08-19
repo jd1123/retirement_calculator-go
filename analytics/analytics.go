@@ -25,7 +25,7 @@ type Histo struct {
 // Max for float64 slices
 func MaxF64(a []float64) float64 {
 	if len(a) == 0 {
-		panic("Empty slice passed!")
+		panic("Empty slice passed to MaxF64()!")
 	}
 	max := math.MaxFloat64 * -1
 	for i := range a {
@@ -39,7 +39,7 @@ func MaxF64(a []float64) float64 {
 // Min for float64 slices
 func MinF64(a []float64) float64 {
 	if len(a) == 0 {
-		panic("Empty slice passed!")
+		panic("Empty slice passed to MinF64()!")
 	}
 	min := math.MaxFloat64
 	for i := range a {
@@ -53,7 +53,7 @@ func MinF64(a []float64) float64 {
 // Average for float64 slices
 func AvgF64(a []float64) float64 {
 	if len(a) == 0 {
-		panic("Empty slice passed!")
+		panic("Empty slice passed to AvgF64()!")
 	}
 	avg := 0.0
 	for i := range a {

@@ -30,13 +30,15 @@ func Sum(a []float64) float64 {
 
 func SumProduct(a, b []float64) float64 {
 	if len(a) != len(b) {
-		panic("lengths of slices are not equal!")
+		panic("mortgage.helpers.SumProduct(): lengths of slices are not equal!")
 	}
 	sum := 0.0
 	for i := 0; i < len(a); i++ {
 		sum += a[i] * b[i]
 	}
-	return sum / float64(len(a))
+	return sum
+	// why is this so wrong?
+	//return sum / float64(len(a))
 }
 
 // Growth factor and discount factor functions

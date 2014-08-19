@@ -12,6 +12,7 @@ var incomeBracket = map[float64]float64{
 	406750.0: 0.396,
 }
 
+// Given the tax bracket above, compute the income tax liability
 func IncomeTaxLiability(income float64) float64 {
 	keys := make([]float64, len(incomeBracket))
 	i := 0
