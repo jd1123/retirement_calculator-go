@@ -28,6 +28,7 @@ type MortgageCalc struct {
 	monthlyTaxes           float64
 	monthlyInsurance       float64
 	monthlyUpkeep          float64
+	totalPayment           float64
 	TerminalHousePrice     float64
 	FixedMonthlyPayment    float64
 	FloatingMonthlyPayment float64
@@ -49,6 +50,7 @@ func (m *MortgageCalc) computeParameters() {
 	m.monthlyTaxes = m.PropertyTax * m.SalePrice / 12.0
 	m.monthlyInsurance = m.InsurancePerYear / 12.0
 	m.monthlyUpkeep = m.SalePrice * m.UpkeepPctPerYear / 12.0
+	m.totalPayment = m.monthlyPayment + m.monthlyTaxes + m.monthlyInsurance
 	m.FixedMonthlyPayment = m.monthlyPayment
 	m.FloatingMonthlyPayment = m.monthlyTaxes + m.monthlyUpkeep + m.monthlyInsurance
 	m.TerminalHousePrice = m.SalePrice * GF(m.ExpectedHousingReturn, m.TermInMonths/12)
@@ -59,10 +61,16 @@ func (m MortgageCalc) PrintMortgageCalc() {
 	fmt.Println("============")
 	fmt.Println("SalePrice:\t\t", m.SalePrice)
 	fmt.Println("Down Payment Pct:\t", m.DownPaymentPercentage)
-	fmt.Println("DownPayment:\t\t", (1-m.DownPaymentPercentage)*m.SalePrice)
+	fmt.Println("DownPayment:\t\t", (m.DownPaymentPercentage)*m.SalePrice)
 	fmt.Println("Loan Rate:\t\t", m.LoanRate)
 	fmt.Println("Mortgage Term:\t\t", m.TermInMonths)
 	fmt.Println("Mortgage Payment:\t", m.monthlyPayment)
+	fmt.Println("Insurance Payment:\t", m.InsurancePerYear/12.0)
+	fmt.Println("Taxes:\t\t\t", m.PropertyTax*m.SalePrice/12.0)
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+	fmt.Println("Loan Balance:\t\t", m.LoanAmount)
+	fmt.Println("Total Payment\t\t", m.totalPayment)
+	fmt.Println("Debt-to-Income\t\t", m.totalPayment/(m.Income/12.0))
 }
 
 func (m MortgageCalc) DFPaymentsVector(irr float64) []float64 {

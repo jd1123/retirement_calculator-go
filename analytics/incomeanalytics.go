@@ -24,7 +24,7 @@ func IncomeTaxLiability(income float64) float64 {
 	incomeLiability := 0.0
 	//incomeLeft := income
 	for i = 1; i < len(keys); i++ {
-		if income > keys[i] {
+		if income >= keys[i] {
 			if i != len(keys)-1 {
 				br := keys[i] - keys[i-1]
 				incomeLiability += br * incomeBracket[keys[i-1]]
@@ -34,7 +34,7 @@ func IncomeTaxLiability(income float64) float64 {
 			}
 		} else if income > keys[i-1] && income < keys[i] {
 			br := income - keys[i-1]
-			incomeLiability += br * incomeBracket[keys[i]]
+			incomeLiability += br * incomeBracket[keys[i-1]]
 		}
 	}
 	return incomeLiability

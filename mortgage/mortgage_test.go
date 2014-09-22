@@ -78,15 +78,24 @@ func TestYearlyInterest(t *testing.T) {
 	//	}
 }
 
-/*
 func TestNominalIncomeTaxBenefit(t *testing.T) {
-	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.035)
-	mp, tax, ins := m.TotalMonthlyPayments()
-	m.Income = (105000 - 17500) * 0.955
-	fmt.Println("Total Monthly Payment: ", mp+tax+ins)
-	fmt.Println(m.nominalMonthlyIncomeTaxBenefit()[0])
-	fmt.Println("Income Taxes: ", analytics.IncomeTaxLiability(m.Income))
-}*/
+	m := NewMortgageCalc(360, 580000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.035)
+	//mp, tax, ins := m.TotalMonthlyPayments()
+	m.Income = 105000.0
+	interest := m.yearlyInterest()[0]
+	fmt.Println("Yearly Interest:\t", interest)
+	fmt.Println("Taxes:\t", m.SalePrice*m.PropertyTax)
+
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+	m.Income = 205000
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+	m.Income = 305000
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+	m.Income = 705000
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+	m.Income = 905000
+	fmt.Println("Income Tax Benefit:\t", m.nominalMonthlyIncomeTaxBenefit()[0])
+}
 
 func TestTotalOwnershipCost(t *testing.T) {
 	m := NewMortgageCalc(360, 575000, 900, 0.25, 0.0395, 0.065, 0.015, 0.02, 0.03)
@@ -114,5 +123,18 @@ func TestCopy(t *testing.T) {
 	}
 	if nm != m {
 		t.Errorf("MortgageCalc.copyCalc() should return an exact replica")
+	}
+}
+
+// Test is not done - check more stuff - mostly computed fields
+func TestNewMortgagecalFromJson(t *testing.T) {
+	JsonObj := []byte(`{"SalePrice":570000.0,"DownPaymentPercentage":0.35,"LoanRate":0.039,"IRR":0.07,"UpkeepPctPerYear":0.015,
+	"PropertyTax":0.02,"InsurancePerYear":1800.0,"TermInMonths":360,"ExpectedHousingReturn":0.025,"Comission":0.06,"Income":100000.0}`)
+	m := NewMortgageCalcFromJSON(JsonObj)
+	if m.SalePrice != 570000.0 {
+		t.Errorf("m.SalePrice should equal known value")
+	}
+	if m.monthlyPayment != MortgageMonthlyPayment((1-m.DownPaymentPercentage)*m.SalePrice, m.LoanRate, m.TermInMonths) {
+		t.Errorf("m.monthlyPayment should equal output from MortgageMonthlyPayment()")
 	}
 }
