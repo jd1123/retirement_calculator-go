@@ -1,4 +1,6 @@
-var beautify = require('js-beautify').js_beautify;
+var beautify = require('js-beautify').js_beautify
+  , Histogram = require('./histogram')
+  , LineChart = require('./linechart')
 
 $(document).ready(function () {
   var sessionId = Math.random().toString(16).substring(2)
@@ -9,7 +11,6 @@ $(document).ready(function () {
       alert('please wait asshole');
     } else {
       loading = true;
-      $('pre#json').text('please wait');
       var payload = { SessionId: sessionId };
       $('#inputs input').each(function(i, e) {
         var $el = $(e);
@@ -26,21 +27,23 @@ $(document).ready(function () {
       var onSuccess = function (data) {
         loading = false;
         var output = beautify(JSON.stringify(data), { indent_size: 2 });
-        $('pre#json').text(output);
-        require('./histo')(data["Bins"]);
-        $('#mainchart').show();
-        $('#mainchart .highcharts-tracker rect').on('click', function(event){
-			ix = $(event.target).index();
-			percentile = data['Bins'][ix]['Weight'];
-  			$.ajax({
+        var histo = new Histogram(data["Bins"]);
+        histo.render();
+        histo.show();
+        histo.getBars().on('click', function(event){
+          ix = $(event.target).index();
+          percentile = data['Bins'][ix]['Weight'];
+          $.ajax({
             type: "GET",
             url: '/paths/',
             beforeSend: function(xhr) {
               xhr.setRequestHeader('X-Session-Id', sessionId)
-			  xhr.setRequestHeader('X-Percentile-Req', percentile)
+              xhr.setRequestHeader('X-Percentile-Req', percentile)
             },
             success: function (data) {
-              console.log(data)
+              var lineChart = new LineChart(data['Yearly_entries']);
+              lineChart.render()
+              lineChart.show()
             },
             dataType: 'json'
           });
