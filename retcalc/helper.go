@@ -83,11 +83,12 @@ func RunPath(r RetCalc, s []float64) Path {
 
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns + Non_taxable_contribution
+      eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
 			Deficit := 0.0
 			retired := false
 			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return, Taxable_contribution,
-				Non_taxable_contribution, Yearly_expenses, Deficit, retired}
+				Non_taxable_contribution, Yearly_expenses, Deficit, retired, eoy_total_balance}
 
 		} else {
 			//Not First year calculations
@@ -118,6 +119,7 @@ func RunPath(r RetCalc, s []float64) Path {
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns +
 				Non_taxable_contribution
+      eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
 
 			// Deduce Expenses
 			if age > r.Retirement_age {
@@ -125,7 +127,7 @@ func RunPath(r RetCalc, s []float64) Path {
 			}
 			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
 				EOY_non_taxable_balance, Taxable_returns, Non_taxable_returns, Rate_of_return,
-				Taxable_contribution, Non_taxable_contribution, 0, 0, retired}
+				Taxable_contribution, Non_taxable_contribution, 0, 0, retired, eoy_total_balance}
 		}
 
 	}

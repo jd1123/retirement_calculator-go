@@ -13,12 +13,13 @@ type YearlyEntry struct {
 	Year                                             time.Time
 	SOY_taxable_balance, EOY_taxable_balance         float64
 	SOY_non_taxable_balance, EOY_non_taxable_balance float64
-	Taxable_returns, Non_taxable_returns             float64
+  Taxable_returns, Non_taxable_returns             float64
 	Rate_of_return                                   float64
 	Taxable_contribution, Non_taxable_contribution   float64
 	Yearly_expenses                                  float64
 	Deficit                                          float64
 	Retired                                          bool
+  EOY_total_balance float64
 }
 
 // Path type and Path methods
@@ -50,45 +51,6 @@ func (p Path) Final_balance() float64 {
 	l := len(p.Yearly_entries) - 1
 	return p.Yearly_entries[l].EOY_taxable_balance + p.Yearly_entries[l].EOY_non_taxable_balance
 }
-
-/*
-// Returns the factors and the sum of factors
-// to compute income from a final balance
-// NOTE: I think this should be renamed IncomeFactors, and
-// also think it probably should be elsewhere. It is not reusing
-// code effectively due to its location in path.go
-// Going to move it to a method of retcalc
-
-// NOTES above done - here for reference
-func (p Path) Factors() (float64, []float64) {
-	factors := make([]float64, len(p.Sim), len(p.Sim))
-	s_factors := 0.0
-
-	for i := range p.Sim {
-		sum := 1.0
-		for j := i + 1; j < len(p.Sim); j++ {
-			sum *= (1 + p.Sim[j])
-		}
-		if p.Yearly_entries[i].Retired {
-			factors[i] = sum * math.Pow(1+p.Inflation_rate, float64(i))
-			s_factors += factors[i]
-		} else {
-			factors[i] = 0
-		}
-	}
-
-	s := 0.0
-	for i := range factors {
-		if i != 0 {
-			if factors[i-1] != 0 && factors[i] != 0 {
-				s += factors[i]
-			}
-		}
-	}
-
-	return s, factors
-}
-*/
 
 // Implement the sort interface on a group of Paths
 // FIXME: how to sort?!
