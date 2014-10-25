@@ -1,12 +1,12 @@
 {
   "name": "retirement_calculator-go",
   "version": "0.0.0",
-  "description": "Advanced Retirement Calculator =============================",
+  "description": "Advanced Retirement Calculator",
   "main": "index.js",
   "scripts": {
     "start": "go run main.go",
     "watch": "watchify frontend/main.js -o static/app.js",
-    "build": "browserify frontend/main.js -o static/app.js,
+    "build": "browserify frontend/main.js -o static/app.js"
   },
   "repository": {
     "type": "git",
