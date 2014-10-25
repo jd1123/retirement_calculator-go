@@ -6,8 +6,9 @@ package retcalc
 
 import (
 	"fmt"
-	"retirement_calculator-go/analytics"
 	"time"
+
+	"github.com/jd1123/retirement_calculator-go/analytics"
 
 	"code.google.com/p/plotinum/plot"
 	"code.google.com/p/plotinum/plotter"

@@ -1,8 +1,8 @@
 package main
 
-import "retirement_calculator-go/mortgage"
+import "github.com/jd1123/retirement_calculator-go/mortgage"
 
-func main() {
+func notmain() {
 	sp := 580000.0
 	yearlyInsurance := 150.0 * 12.0
 	propertyTaxRate := 870.0 * 12.0 / sp

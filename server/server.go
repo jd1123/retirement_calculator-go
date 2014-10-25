@@ -7,9 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"retirement_calculator-go/analytics"
-	"retirement_calculator-go/retcalc"
 	"strconv"
+
+	"github.com/jd1123/retirement_calculator-go/analytics"
+	"github.com/jd1123/retirement_calculator-go/retcalc"
 
 	"github.com/gorilla/mux"
 )

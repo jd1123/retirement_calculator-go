@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"retirement_calculator-go/analytics"
+	"github.com/jd1123/retirement_calculator-go/analytics"
 )
 
 const STANDARD_DEDUCTION = 6100
