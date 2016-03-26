@@ -26,6 +26,12 @@ var MEDIUMRISKPORTFOLIO Portfolio = Portfolio{0.055, 0.12} // 80% stocks 20% bon
 var LOWRISKPORTFOLIO Portfolio = Portfolio{0.04, 0.09}     // 50% stocks 50% bonds
 var BLANKPORTFOLIO Portfolio = Portfolio{0.0, 0.0}         // the blank portfolio
 
+var PortfolioStrings = map[string]Portfolio{
+	"HIGHRISKPORTFOLIO":   HIGHRISKPORTFOLIO,
+	"MEDIUMRISKPORTFOLIO": MEDIUMRISKPORTFOLIO,
+	"LOWRISKPORTFOLIO":    LOWRISKPORTFOLIO,
+}
+
 func NewCustomPortfolio(expectedReturn, assetVolatility float64) Portfolio {
 	return Portfolio{expectedReturn, assetVolatility}
 }

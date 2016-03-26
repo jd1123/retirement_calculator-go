@@ -23,6 +23,7 @@ type RetCalc struct {
 	Non_Taxable_balance, Taxable_balance           float64
 	Yearly_retirement_expenses                     float64
 	PortfolioSelection                             Portfolio
+	PortfolioString                                string
 	Inflation_rate                                 float64
 	all_paths                                      PathGroup
 	SessionId                                      string
@@ -38,6 +39,7 @@ func (r RetCalc) ShowRetCalc() {
 	fmt.Printf("Non_Taxable_contribution %f\n", r.Non_Taxable_contribution)
 	fmt.Printf("Taxable_contribution %f\n", r.Taxable_contribution)
 	fmt.Printf("Inflation_rate %f\n", r.Inflation_rate)
+	fmt.Println("Portfolio Selection:", r.PortfolioSelection)
 	fmt.Println()
 }
 
@@ -199,6 +201,7 @@ func (r RetCalc) GrowthFactor(startYear, simIdx int) float64 {
 
 // This constructor will populate a RetCalc from
 // JSON input from the web ----- NEEDS work
+// FIXME: This should return an error value
 func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
@@ -210,9 +213,13 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	if r.N == 0 {
 		r.N = 10000
 	}
-	if r.PortfolioSelection == BLANKPORTFOLIO {
-		r.PortfolioSelection = HIGHRISKPORTFOLIO
-	}
+	r.PortfolioSelection = PortfolioStrings[r.PortfolioString]
+	/*
+		if r.PortfolioSelection == BLANKPORTFOLIO {
+			//r.PortfolioSelection = HIGHRISKPORTFOLIO
+			r.PortfolioSelection = LOWRISKPORTFOLIO
+		}
+	*/
 	if r.Inflation_rate == 0 {
 		r.Inflation_rate = 0.035
 	}

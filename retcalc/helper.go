@@ -10,8 +10,8 @@ import (
 
 	"github.com/jd1123/retirement_calculator-go/analytics"
 
-	"code.google.com/p/plotinum/plot"
-	"code.google.com/p/plotinum/plotter"
+	"github.com/gonum/plot"
+	"github.com/gonum/plot/plotter"
 )
 
 // Builds a histogram from a []float64 slice :)
@@ -83,7 +83,7 @@ func RunPath(r RetCalc, s []float64) Path {
 
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns + Non_taxable_contribution
-      eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
+			eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
 			Deficit := 0.0
 			retired := false
 			ye[i] = YearlyEntry{age, st_date, SOY_taxable_balance, EOY_taxable_balance, SOY_non_taxable_balance,
@@ -119,7 +119,7 @@ func RunPath(r RetCalc, s []float64) Path {
 			EOY_taxable_balance := SOY_taxable_balance + Taxable_returns + Taxable_contribution
 			EOY_non_taxable_balance := SOY_non_taxable_balance + Non_taxable_returns +
 				Non_taxable_contribution
-      eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
+			eoy_total_balance := EOY_taxable_balance + EOY_non_taxable_balance
 
 			// Deduce Expenses
 			if age > r.Retirement_age {
