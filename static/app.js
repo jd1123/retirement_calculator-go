@@ -105,7 +105,7 @@ $(document).ready(function () {
       loading = true;
       var payload = { SessionId: sessionId };
       $('#inputs input').each(function(i, e) {
-        var $el = $(e);
+		var $el = $(e);
         var type = $el.data('type');
         var val = $el.val();
         if ( type === "float") {
@@ -115,6 +115,9 @@ $(document).ready(function () {
         }
         payload[$el.data('key')] = val;
       });
+	  $('select').each(function(i,e){
+		  payload[e.name] = e.options[e.selectedIndex].value;
+	  });
 
       var onSuccess = function (data) {
         loading = false;

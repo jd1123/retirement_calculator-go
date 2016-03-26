@@ -12,7 +12,8 @@ $(document).ready(function () {
     } else {
       loading = true;
       var payload = { SessionId: sessionId };
-      $('#inputs input').each(function(i, e) {
+      $('#inputs input #select select').each(function(i, e) {
+		console.log("got one");
         var $el = $(e);
         var type = $el.data('type');
         var val = $el.val();

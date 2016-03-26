@@ -120,8 +120,8 @@ func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	sessId := r.Header["X-Session-Id"][0]
 	percentile, _ := strconv.ParseFloat(r.Header["X-Percentile-Req"][0], 64)
 	filename := "tmp/" + string(sessId)
-	
-  // Error check HTTP Headers
+
+	// Error check HTTP Headers
 	if percentile > 1.0 || percentile < 0.0 {
 		fmt.Println("ERROR: invalid percentile requested - setting to 0.5")
 		percentile = 0.5
@@ -135,20 +135,20 @@ func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	// Try opening file
 	savedSim, err := ioutil.ReadFile(filename)
 	if err != nil {
-    fmt.Println("Error in SinglePath()")
+		fmt.Println("Error in SinglePath()")
 		panic(err)
 	}
 
 	// Now do the retcalc processing
 	rc := retcalc.NewRetCalcFromJSON(savedSim)
 	fmt.Println("Percentile Requested:", percentile, "SessionID", sessId)
-  
-  // FIXME: THIS IS A HACK -
-  // requesting percentile 1.0 causes an out of range runtime panic
-  if percentile == 1.0{
-    percentile = 0.99
-  }
-  // Debug stuff - leave it in here
+
+	// FIXME: THIS IS A HACK -
+	// requesting percentile 1.0 causes an out of range runtime panic
+	if percentile == 1.0 {
+		percentile = 0.99
+	}
+	// Debug stuff - leave it in here
 	// j, _ := json.Marshal(rc.PercentilePath(percentile))
 	// fmt.Println(string(j))
 
