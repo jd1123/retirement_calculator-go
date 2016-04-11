@@ -1,6 +1,6 @@
 package main
 
-import "github.com/jd1123/retirement_calculator-go/mortgage"
+import "retirement_calculator-go/mortgage"
 
 func notmain() {
 	sp := 580000.0

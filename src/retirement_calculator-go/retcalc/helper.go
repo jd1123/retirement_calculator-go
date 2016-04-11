@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jd1123/retirement_calculator-go/analytics"
+	"retirement_calculator-go/analytics"
 
 	"github.com/gonum/plot"
 	"github.com/gonum/plot/plotter"

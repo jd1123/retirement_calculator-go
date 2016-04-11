@@ -52,10 +52,10 @@ func (r RetCalc) RunAllPaths() PathGroup {
 	for i := range r.Sims {
 		go func() {
 			pathChan <- RunPath(r, r.Sims[i])
-			//all_paths[i] = RunPath(r, r.Sims[i])
 		}()
 	}
-	//sort.Sort(all_paths)
+
+	// FIXME: Check this concurrency - is there a better way?
 	i := 0
 	for j := range pathChan {
 		all_paths[i] = j
@@ -73,9 +73,6 @@ func (r RetCalc) RunIncomes() []float64 {
 	for i := range r.Sims {
 		untaxed_total_wealth := r.Non_Taxable_balance * r.Sims[i].GrowthFactor(0)
 		taxed_total_wealth := r.Taxable_balance * r.Sims[i].GrowthFactorWithTaxes(0, r.Effective_tax_rate)
-		//ft, _ := r.All_paths[i].Factors()
-		//fmt.Printf("Income from taxed accts starting: %f nt accts: %f\n", taxed_total_wealth/ft,
-		//	(untaxed_total_wealth/(1+r.Effective_tax_rate))/ft)
 		sum_t, sum_ut := 0.0, 0.0
 		for j := range r.Sims[i] {
 			if j+r.Age < r.Retirement_age {
@@ -137,14 +134,7 @@ func (r RetCalc) IncomeProbability() float64 {
 	return float64(counter) / float64(r.N)
 }
 
-// Sets a simulation - used for testing
-func (r RetCalc) SetSim(ix int, newSim []float64) {
-	for i := range r.Sims[ix] {
-		r.Sims[ix][i] = newSim[i]
-	}
-	r.all_paths[ix] = RunPath(r, r.Sims[ix])
-}
-
+// **
 // returns the inflation factors for the retcalc object
 func (r RetCalc) InflationFactors() []float64 {
 	inflationFactors := make([]float64, r.Years, r.Years)
@@ -154,6 +144,7 @@ func (r RetCalc) InflationFactors() []float64 {
 	return inflationFactors
 }
 
+// **
 // returns the income factors for the retcalc objects for sim simIdx
 func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 	sim := r.Sims[0]
@@ -173,6 +164,7 @@ func (r RetCalc) IncomeFactors(simIdx int) (float64, []float64) {
 	return sumFactors, incomeFactors
 }
 
+// **
 // returns the income factors with taxes for sim simIdx
 func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
 	sim := r.Sims[0]
@@ -192,34 +184,26 @@ func (r RetCalc) IncomeFactorsWithTaxes(simIdx int) (float64, []float64) {
 	return sumFactors, incomeFactors
 }
 
-// returns the growth factor for starting year startYear and sim simIdx
-func (r RetCalc) GrowthFactor(startYear, simIdx int) float64 {
-	return r.Sims[simIdx].GrowthFactor(startYear)
-}
-
 // Constructors
 
 // This constructor will populate a RetCalc from
 // JSON input from the web ----- NEEDS work
-// FIXME: This should return an error value
-func NewRetCalcFromJSON(json_obj []byte) RetCalc {
+func NewRetCalcFromJSON(json_obj []byte) (RetCalc, error) {
 	var r RetCalc
 	err := json.Unmarshal(json_obj, &r)
 	if err != nil {
 		fmt.Println("ERROR in NewRetCalcFromJSON()")
 		fmt.Println(err)
+		return RetCalc{}, err
 	}
 	r.Years = r.Terminal_age - r.Age + 1
 	if r.N == 0 {
 		r.N = 10000
 	}
+
+	// FIXME: Sanitize the inputs
 	r.PortfolioSelection = PortfolioStrings[r.PortfolioString]
-	/*
-		if r.PortfolioSelection == BLANKPORTFOLIO {
-			//r.PortfolioSelection = HIGHRISKPORTFOLIO
-			r.PortfolioSelection = LOWRISKPORTFOLIO
-		}
-	*/
+
 	if r.Inflation_rate == 0 {
 		r.Inflation_rate = 0.035
 	}
@@ -230,7 +214,7 @@ func NewRetCalcFromJSON(json_obj []byte) RetCalc {
 	}
 	r.all_paths = r.RunAllPaths()
 
-	return r
+	return r, nil
 }
 
 // A very basic RetCalc with standard info

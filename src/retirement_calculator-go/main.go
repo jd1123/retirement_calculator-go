@@ -32,7 +32,9 @@ import (
 	"runtime/pprof"
 	"strconv"
 
-	"github.com/jd1123/retirement_calculator-go/server"
+	"retirement_calculator-go/server"
+
+	_ "github.com/dimiro1/banner/autoload"
 )
 
 const listenPort = 8081

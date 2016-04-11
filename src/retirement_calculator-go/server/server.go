@@ -9,8 +9,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/jd1123/retirement_calculator-go/analytics"
-	"github.com/jd1123/retirement_calculator-go/retcalc"
+	"retirement_calculator-go/analytics"
+	"retirement_calculator-go/retcalc"
 
 	"github.com/gorilla/mux"
 )
@@ -77,7 +77,11 @@ func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
 	body, _ := ioutil.ReadAll(r.Body)
 
-	myRetCalc := retcalc.NewRetCalcFromJSON(body)
+	myRetCalc, err := retcalc.NewRetCalcFromJSON(body)
+	if err != nil {
+		// FIXME: this should return a 404 or 500 or something
+		return err
+	}
 
 	fmt.Println()
 	fmt.Println("POST request recieved - RecalcFromWebInput()")
@@ -129,7 +133,9 @@ func SinglePath(w http.ResponseWriter, r *http.Request) error {
 
 	if _, err := os.Stat(filename); err != nil {
 		fmt.Printf("File does not exist: panicking")
+		// FIXME: this should return a 404 or 500 or something
 		panic(err)
+		return err
 	}
 
 	// Try opening file
@@ -140,7 +146,11 @@ func SinglePath(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	// Now do the retcalc processing
-	rc := retcalc.NewRetCalcFromJSON(savedSim)
+	rc, err := retcalc.NewRetCalcFromJSON(savedSim)
+	if err != nil {
+		// FIXME: this should return a 404 or 500 or something
+		return err
+	}
 	fmt.Println("Percentile Requested:", percentile, "SessionID", sessId)
 
 	// FIXME: THIS IS A HACK -

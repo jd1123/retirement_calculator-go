@@ -5,7 +5,9 @@ import "math"
 /* 	Portfolio objects
 Will let the user decide which type of portfolio he/she will
 use for their retirement portfolio. Will be based on historical
-data. Will also let the user make a portfolio
+data. Will also let the user make a portfolio.
+This is highly simplified, but if you can project returns,
+it will work moderately well.
 */
 
 type Portfolio struct {
@@ -15,6 +17,8 @@ type Portfolio struct {
 
 // Basic returns and volatility parameters
 // FIXME: check these against history
+// Bond returns seem high and volatility is well,
+// probably not correct
 var STOCK_RETURNS = 0.07
 var STOCK_VOLATILITY = 0.15
 var BOND_RETURNS = 0.04
