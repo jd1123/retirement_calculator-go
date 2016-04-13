@@ -30,6 +30,18 @@ The idea will be to simulate ~~10000~~ 100000 paths of the stock market over any
 You will then be able to plan with a certain confidence level.
 Perhaps you're in good shape, but with what probability can you assume this is true?
 
+One day, when I've worked on it enough, I will post it on a website and you will be able to use it remotely. Now, you can build it and run it locally:
+
+```
+mkdir -p <working_directory>
+git clone https://github.com/jd1123/retirement_calculator-go
+cd retirement_calculator-go
+make
+./retirement_calculator-go
+```
+
+Now point your browser to 127.0.0.1:8081 and have fun.
+
 Why re-write this in Go?
 -----
 Two reasons. One, I was running into memory issues with Python. Two, I want to learn Go.
