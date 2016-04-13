@@ -8,6 +8,5 @@ import "fmt"
 func sanitizeJSON(JSONbody string) error {
 	fmt.Println("JSON Body Sanitizer")
 	fmt.Println(JSONbody)
-	thisfunctiondoesnotexist
 	return nil
 }

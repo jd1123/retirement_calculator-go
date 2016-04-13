@@ -21,7 +21,8 @@ clean-deps:
 	#go clean -i -r -n
 	rm -rf src/bitbucket.org
 	rm -rf src/github.com
-	rm -rf src/golang.org 
+	rm -rf src/golang.org
+	rm -rf pkg
 
 clean-all:
 	make clean-build

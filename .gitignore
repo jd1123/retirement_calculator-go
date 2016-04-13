@@ -4,3 +4,8 @@
 node_modules/*
 coverage.out
 /tmp/*
+src/github.com
+src/bitbucket.org
+src/golang.org
+pkg
+
