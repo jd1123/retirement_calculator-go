@@ -42,10 +42,20 @@ make
 
 Now point your browser to [127.0.0.1:8081](http://127.0.0.1:8081) and have fun.
 
+Does this make any assumtions?
+-----
+Yes, it does. 
+
+1. Savings for a particular year make no returns. This is not practically true.
+2. Your retirement income does not adjust for inflation (I need to check this, it's been a long time since I wrote this).
+3. Your taxable accounts are taxed at the long term capital gains tax each year. This may or may not be the case for you, but either way, this assumption was made to simulate tax liabilities stemming from returns generation.
+4. Your non taxable accounts are taxed at 30% (check this number) upon withdrawal. Again, this is YOU specific, but in the future I'd like to make this an editable field.
+5. The stock market follows a lognormal distrubution with Mu=7% and Sigma=15%. You can edit these by changing the type of portfolio: High Risk, Medium Risk or Low Risk.
+
 Why re-write this in Go?
 -----
 Two reasons. One, I was running into memory issues with Python. Two, I want to learn Go.
 
 Who are you?
 ------
-I am johnnydiabetic. I am not a financial advisor, but I have worked in finance nearly a decade. This does not in any way make me qualified to give financial advice.
+I am johnnydiabetic. I am not a financial advisor, but I have worked in finance for more than a decade, first in risk management, then as an options trader. Please note, this does not in any way make me qualified to give financial advice. This is intended to be used as a tool to verify the impact using the stock market as a savings vehicle.
