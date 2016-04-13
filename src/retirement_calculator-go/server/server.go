@@ -24,7 +24,6 @@ const InPathPrefix = "/inpath/"
 
 func RegisterHandlers() {
 	r := mux.NewRouter()
-
 	// Actual used functions
 	r.HandleFunc(InputPrefix, error_handler(RecalcFromWebInput)).Methods("POST")
 	r.HandleFunc(PathPrefix, error_handler(SinglePath)).Methods("GET")
@@ -71,11 +70,21 @@ func PathInfo(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+// FIXME: Need to sanitize user input
 // Creates a RetCalc object from user input and returns
 // a histogram of the incomes from this input
 func RecalcFromWebInput(w http.ResponseWriter, r *http.Request) error {
 	defer r.Body.Close()
-	body, _ := ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
+
+	if err != nil {
+		return err
+	}
+
+	err = sanitizeJSON(string(body))
+	if err != nil {
+		return err
+	}
 
 	myRetCalc, err := retcalc.NewRetCalcFromJSON(body)
 	if err != nil {
@@ -109,6 +118,7 @@ func Retcalc_basic(w http.ResponseWriter, r *http.Request) error {
 	return json.NewEncoder(w).Encode(rc)
 }
 
+// FIXME: Need to sanitize user input
 // this is for testing - returns income for a default RetCalc
 func IncomesJSON(w http.ResponseWriter, r *http.Request) error {
 	rc := retcalc.NewRetCalc()
