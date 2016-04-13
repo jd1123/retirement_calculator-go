@@ -15,10 +15,10 @@ me that I can retire comfortably?
 
 What does it do differently?
 ------
-The stock market is said to follow a geometric brownian motion with a positive return and some volatility. As a result, returns will be random.
-We can simulate stock market data by using random data from a N(mu,sigma) distribution. 
-It is widely known that the stock market is not lognormally distributed, but this is a much better approximation than assuming 7% smooth returns in perpetuity.
-This is important, because your life and retirement plan are path dependent. There could be situations where a higher average return is actually worse for your 
+The stock market is said to follow a [geometric brownian motion](https://en.wikipedia.org/wiki/Geometric_Brownian_motion) with a positive return and some [volatility](http://www.commonwealth.com/RepSiteContent/stock_volatility.htm). As a result, returns will be random.
+We can simulate stock market data by using random data from a [N(mu,sigma) distribution](https://en.wikipedia.org/wiki/Log-normal_distribution). 
+It is widely known that the stock market is [not lognormally distributed](https://en.wikipedia.org/wiki/Volatility_smile), but this is a much better approximation than assuming 7% smooth returns in perpetuity.
+This is important, because your life and retirement plan are [path dependent](https://en.wikipedia.org/wiki/Path_dependence). There could be situations where a higher average return is actually worse for your 
 savings plan.
  
 How do I use this?
@@ -26,7 +26,7 @@ How do I use this?
 Right now its a work in progress. I am going to put this into a ~~django~~ Go webapp as soon as I find the time and figure out all the details. Currently, 
 I am working out bugs in the logic.
 
-The idea will be to simulate ~~10000~~ 100000 paths of the stock market over any number of years and look at the distribution of your retirement portfolio.
+The idea will be to [simulate](https://en.wikipedia.org/wiki/Monte_Carlo_method) ~~10000~~ 100000 paths of the stock market over any number of years and look at the distribution of your retirement portfolio.
 You will then be able to plan with a certain confidence level.
 Perhaps you're in good shape, but with what probability can you assume this is true?
 
@@ -40,7 +40,7 @@ make
 ./retirement_calculator-go
 ```
 
-Now point your browser to 127.0.0.1:8081 and have fun.
+Now point your browser to [127.0.0.1:8081](http://127.0.0.1:8081) and have fun.
 
 Why re-write this in Go?
 -----
